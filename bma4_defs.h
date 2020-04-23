@@ -1,40 +1,42 @@
 /**
-* Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
-*
-* BSD-3-Clause
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* 1. Redistributions of source code must retain the above copyright
-*    notice, this list of conditions and the following disclaimer.
-*
-* 2. Redistributions in binary form must reproduce the above copyright
-*    notice, this list of conditions and the following disclaimer in the
-*    documentation and/or other materials provided with the distribution.
-*
-* 3. Neither the name of the copyright holder nor the names of its
-*    contributors may be used to endorse or promote products derived from
-*    this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-* @file	bma4_defs.h
-* @date	2020-01-10
-* @version	v2.12.8
-*
-*//*! \file bma4_defs.h
+ * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
+ *
+ * BSD-3-Clause
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * @file       bma4_defs.h
+ * @date       2020-04-09
+ * @version    V2.14.12
+ *
+ */
+
+/*! \file bma4_defs.h
  * \brief Sensor Driver for BMA4 family of sensors
  */
 #ifndef BMA4_DEFS_H__
@@ -53,51 +55,51 @@
 /*********************************************************************/
 /* macro definitions */
 
-/*
- * #if (LONG_MAX) > 0x7fffffff
- * #define __have_long64    1
- * #elif (LONG_MAX) == 0x7fffffff
- * #define __have_long32    1
- * #endif
- */
+#ifdef __KERNEL__
 
-#if !defined(UINT8_C)
-#define INT8_C(x)   x
-#if (INT_MAX) > 0x7f
-#define UINT8_C(x)  x
-#else
-#define UINT8_C(x)  x##U
-#endif
+#if (!defined(UINT8_C) && !defined(INT8_C))
+#define INT8_C(x)   S8_C(x)
+#define UINT8_C(x)  U8_C(x)
 #endif
 
-#if !defined(UINT16_C)
-#define INT16_C(x)  x
-#if (INT_MAX) > 0x7fff
-#define UINT16_C(x) x
-#else
-#define UINT16_C(x) x##U
-#endif
+#if (!defined(UINT16_C) && !defined(INT16_C))
+#define INT16_C(x)  S16_C(x)
+#define UINT16_C(x) U16_C(x)
 #endif
 
-#if !defined(INT32_C) && !defined(UINT32_C)
-#if __have_long32
-#define INT32_C(x)  x##L
-#define UINT32_C(x) x##UL
-#else
-#define INT32_C(x)  x
-#define UINT32_C(x) x##U
-#endif
+#if (!defined(INT32_C) && !defined(UINT32_C))
+#define INT32_C(x)  S32_C(x)
+#define UINT32_C(x) U32_C(x)
 #endif
 
-#if !defined(INT64_C) && !defined(UINT64_C)
-#if __have_long64
-#define INT64_C(x)  x##L
-#define UINT64_C(x) x##UL
-#else
-#define INT64_C(x)  x##LL
-#define UINT64_C(x) x##ULL
+#if (!defined(INT64_C) && !defined(UINT64_C))
+#define INT64_C(x)  S64_C(x)
+#define UINT64_C(x) U64_C(x)
 #endif
+
+#else /* __KERNEL__ */
+
+#if (!defined(UINT8_C) && !defined(INT8_C))
+#define INT8_C(x)   (x)
+#define UINT8_C(x)  (x##U)
 #endif
+
+#if (!defined(UINT16_C) && !defined(INT16_C))
+#define INT16_C(x)  (x)
+#define UINT16_C(x) (x##U)
+#endif
+
+#if (!defined(INT32_C) && !defined(UINT32_C))
+#define INT32_C(x)  (x)
+#define UINT32_C(x) (x##U)
+#endif
+
+#if (!defined(INT64_C) && !defined(UINT64_C))
+#define INT64_C(x)  (x##LL)
+#define UINT64_C(x) (x##ULL)
+#endif
+
+#endif /* __KERNEL__ */
 
 /**\name CHIP ID ADDRESS*/
 #define BMA4_CHIP_ID_ADDR                        UINT8_C(0x00)
@@ -179,6 +181,9 @@
 /**\name SELF_TEST REGISTER*/
 #define BMA4_ACC_SELF_TEST_ADDR                  UINT8_C(0X6D)
 
+/**\name Macro to define accelerometer configuration value for FOC */
+#define BMA4_FOC_ACC_CONF_VAL                    UINT8_C(0xB7)
+
 /**\name SPI,I2C SELECTION REGISTER*/
 #define BMA4_NV_CONFIG_ADDR                      UINT8_C(0x70)
 
@@ -212,10 +217,6 @@
 #define BMA4_I2C_BMM150_ADDR                     UINT8_C(0x10)
 
 /**\name Interface selection macro */
-#define BMA4_SPI_INTERFACE                       UINT8_C(1)
-#define BMA4_I2C_INTERFACE                       UINT8_C(2)
-
-/**\name Interface selection macro */
 #define BMA4_SPI_WR_MASK                         UINT8_C(0x7F)
 #define BMA4_SPI_RD_MASK                         UINT8_C(0x80)
 
@@ -239,7 +240,6 @@
 #define BMA4_FIFO_CONFIG_LENGTH                  UINT8_C(2)
 #define BMA4_ACCEL_CONFIG_LENGTH                 UINT8_C(2)
 #define BMA4_FIFO_WM_LENGTH                      UINT8_C(2)
-#define BMA4_CONFIG_STREAM_SIZE                  UINT16_C(6144)
 #define BMA4_NON_LATCH_MODE                      UINT8_C(0)
 #define BMA4_LATCH_MODE                          UINT8_C(1)
 #define BMA4_OPEN_DRAIN                          UINT8_C(1)
@@ -281,13 +281,12 @@
 #define BMA4_KELVIN                              UINT8_C(3)
 
 /**\name DELAY DEFINITION IN MSEC*/
-
 #define BMA4_AUX_IF_DELAY                        UINT8_C(5)
 #define BMA4_BMM150_WAKEUP_DELAY1                UINT8_C(2)
 #define BMA4_BMM150_WAKEUP_DELAY2                UINT8_C(3)
 #define BMA4_BMM150_WAKEUP_DELAY3                UINT8_C(1)
-#define BMA4_GEN_READ_WRITE_DELAY                UINT8_C(1000)
-#define BMA4_AUX_COM_DELAY                       UINT8_C(10000)
+#define BMA4_GEN_READ_WRITE_DELAY                UINT16_C(1000)
+#define BMA4_AUX_COM_DELAY                       UINT16_C(10000)
 
 /**\name    ARRAY PARAMETER DEFINITIONS*/
 #define BMA4_SENSOR_TIME_MSB_BYTE                UINT8_C(2)
@@ -304,28 +303,28 @@
 #define BMA4_TEMP_BYTE                           UINT8_C(0)
 #define BMA4_FIFO_LENGTH_MSB_BYTE                UINT8_C(1)
 
-/**\name    ERROR CODES */
-#define BMA4_OK                                  UINT16_C(0)
-#define BMA4_E_NULL_PTR                          UINT16_C(1)
-#define BMA4_E_OUT_OF_RANGE                      UINT16_C(1 << 1)
-#define BMA4_E_INVALID_SENSOR                    UINT16_C(1 << 2)
-#define BMA4_E_CONFIG_STREAM_ERROR               UINT16_C(1 << 3)
-#define BMA4_E_SELF_TEST_FAIL                    UINT16_C(1 << 4)
-#define BMA4_E_FOC_FAIL                          UINT16_C(1 << 5)
-#define BMA4_E_FAIL                              UINT16_C(1 << 6)
-#define BMA4_E_INT_LINE_INVALID                  UINT16_C(1 << 7)
-#define BMA4_E_RD_WR_LENGTH_INVALID              UINT16_C(1 << 8)
-#define BMA4_E_AUX_CONFIG_FAIL                   UINT16_C(1 << 9)
-#define BMA4_E_SC_FIFO_HEADER_ERR                UINT16_C(1 << 10)
-#define BMA4_E_SC_FIFO_CONFIG_ERR                UINT16_C(1 << 11)
+/*! @name To define success code */
+#define BMA4_OK                                  INT8_C(0)
+
+/*! @name To define error codes */
+#define BMA4_E_NULL_PTR                          INT8_C(-1)
+#define BMA4_E_COM_FAIL                          INT8_C(-2)
+#define BMA4_E_DEV_NOT_FOUND                     INT8_C(-3)
+#define BMA4_E_INVALID_SENSOR                    INT8_C(-4)
+#define BMA4_E_CONFIG_STREAM_ERROR               INT8_C(-5)
+#define BMA4_E_SELF_TEST_FAIL                    INT8_C(-6)
+#define BMA4_E_FOC_FAIL                          INT8_C(-7)
+#define BMA4_E_OUT_OF_RANGE                      INT8_C(-8)
+#define BMA4_E_INT_LINE_INVALID                  INT8_C(-9)
+#define BMA4_E_RD_WR_LENGTH_INVALID              INT8_C(-10)
+#define BMA4_E_AUX_CONFIG_FAIL                   INT8_C(-11)
+#define BMA4_E_SC_FIFO_HEADER_ERR                INT8_C(-12)
+#define BMA4_E_SC_FIFO_CONFIG_ERR                INT8_C(-13)
 
 /**\name    UTILITY MACROS  */
 #define BMA4_SET_LOW_BYTE                        UINT16_C(0x00FF)
 #define BMA4_SET_HIGH_BYTE                       UINT16_C(0xFF00)
 #define BMA4_SET_LOW_NIBBLE                      UINT8_C(0x0F)
-
-/**\name    FOC RELATED MACROS  */
-#define BMA4_ACCEL_CONFIG_FOC                    UINT8_C(0xB7)
 
 /* Macros used for Self test */
 /* Self-test: Resulting minimum difference signal in mg for BMA42x */
@@ -361,9 +360,6 @@
 #define BMA4_FIFO_ERR_MSK                        UINT8_C(0x40)
 #define BMA4_AUX_ERR_POS                         UINT8_C(7)
 #define BMA4_AUX_ERR_MSK                         UINT8_C(0x80)
-
-/**\name    Maximum number of bytes to be read from the sensor */
-#define BMA4_MAX_BUFFER_SIZE                     UINT8_C(81)
 
 /**\name    NV_CONFIG POSITION AND MASK*/
 /* NV_CONF Description - Reg Addr --> (0x70), Bit --> 3 */
@@ -430,14 +426,14 @@
 #define BMA4_FIFO_FILTER_ACCEL_MSK               UINT8_C(0x80)
 
 /**\name    FIFO HEADER DATA DEFINITIONS    */
-#define FIFO_HEAD_A                              UINT8_C(0x84)
-#define FIFO_HEAD_M                              UINT8_C(0x90)
-#define FIFO_HEAD_M_A                            UINT8_C(0x94)
-#define FIFO_HEAD_SENSOR_TIME                    UINT8_C(0x44)
-#define FIFO_HEAD_INPUT_CONFIG                   UINT8_C(0x48)
-#define FIFO_HEAD_SKIP_FRAME                     UINT8_C(0x40)
-#define FIFO_HEAD_OVER_READ_MSB                  UINT8_C(0x80)
-#define FIFO_HEAD_SAMPLE_DROP                    UINT8_C(0x50)
+#define BMA4_FIFO_HEAD_A                         UINT8_C(0x84)
+#define BMA4_FIFO_HEAD_M                         UINT8_C(0x90)
+#define BMA4_FIFO_HEAD_M_A                       UINT8_C(0x94)
+#define BMA4_FIFO_HEAD_SENSOR_TIME               UINT8_C(0x44)
+#define BMA4_FIFO_HEAD_INPUT_CONFIG              UINT8_C(0x48)
+#define BMA4_FIFO_HEAD_SKIP_FRAME                UINT8_C(0x40)
+#define BMA4_FIFO_HEAD_OVER_READ_MSB             UINT8_C(0x80)
+#define BMA4_FIFO_HEAD_SAMPLE_DROP               UINT8_C(0x50)
 
 /**\name    FIFO HEADERLESS MODE DATA ENABLE DEFINITIONS   */
 #define BMA4_FIFO_M_A_ENABLE                     UINT8_C(0x60)
@@ -457,14 +453,14 @@
 #define BMA4_FIFO_CONFIG_1_MASK                  UINT8_C(0xFC)
 
 /**\name    FIFO FRAME COUNT DEFINITION     */
-#define FIFO_LSB_CONFIG_CHECK                    UINT8_C(0x00)
-#define FIFO_MSB_CONFIG_CHECK                    UINT8_C(0x80)
+#define BMA4_FIFO_LSB_CONFIG_CHECK               UINT8_C(0x00)
+#define BMA4_FIFO_MSB_CONFIG_CHECK               UINT8_C(0x80)
 #define BMA4_FIFO_TAG_INTR_MASK                  UINT8_C(0xFC)
 
 /**\name    FIFO DROPPED FRAME DEFINITION     */
-#define AUX_FIFO_DROP                            UINT8_C(0x04)
-#define ACCEL_AUX_FIFO_DROP                      UINT8_C(0x05)
-#define ACCEL_FIFO_DROP                          UINT8_C(0x01)
+#define BMA4_AUX_FIFO_DROP                       UINT8_C(0x04)
+#define BMA4_ACCEL_AUX_FIFO_DROP                 UINT8_C(0x05)
+#define BMA4_ACCEL_FIFO_DROP                     UINT8_C(0x01)
 
 /**\name FIFO MAG DEFINITION*/
 #define BMA4_MA_FIFO_A_X_LSB                     UINT8_C(8)
@@ -550,16 +546,16 @@
 #define BMA4_Z_AXIS                              UINT8_C(2)
 
 /**\name SELF TEST*/
-#define BMA4_SELFTEST_PASS                       UINT8_C(0)
-#define BMA4_SELFTEST_FAIL                       UINT8_C(1)
+#define BMA4_SELFTEST_PASS                       INT8_C(0)
+#define BMA4_SELFTEST_FAIL                       INT8_C(1)
 
-#define BMA4_SELFTEST_DIFF_X_AXIS_FAILED         UINT8_C(1)
-#define BMA4_SELFTEST_DIFF_Y_AXIS_FAILED         UINT8_C(2)
-#define BMA4_SELFTEST_DIFF_Z_AXIS_FAILED         UINT8_C(3)
-#define BMA4_SELFTEST_DIFF_X_AND_Y_AXIS_FAILED   UINT8_C(4)
-#define BMA4_SELFTEST_DIFF_X_AND_Z_AXIS_FAILED   UINT8_C(5)
-#define BMA4_SELFTEST_DIFF_Y_AND_Z_AXIS_FAILED   UINT8_C(6)
-#define BMA4_SELFTEST_DIFF_X_Y_AND_Z_AXIS_FAILED UINT8_C(7)
+#define BMA4_SELFTEST_DIFF_X_AXIS_FAILED         INT8_C(1)
+#define BMA4_SELFTEST_DIFF_Y_AXIS_FAILED         INT8_C(2)
+#define BMA4_SELFTEST_DIFF_Z_AXIS_FAILED         INT8_C(3)
+#define BMA4_SELFTEST_DIFF_X_AND_Y_AXIS_FAILED   INT8_C(4)
+#define BMA4_SELFTEST_DIFF_X_AND_Z_AXIS_FAILED   INT8_C(5)
+#define BMA4_SELFTEST_DIFF_Y_AND_Z_AXIS_FAILED   INT8_C(6)
+#define BMA4_SELFTEST_DIFF_X_Y_AND_Z_AXIS_FAILED INT8_C(7)
 
 /**\name INTERRUPT MAPS    */
 #define BMA4_INTR1_MAP                           UINT8_C(0)
@@ -573,22 +569,22 @@
 #define BMA4_ACCEL_DATA_RDY_INT                  UINT16_C(0x8000)
 
 /**\name    AKM POWER MODE SELECTION     */
-#define AKM_POWER_DOWN_MODE                      UINT8_C(0)
-#define AKM_SINGLE_MEAS_MODE                     UINT8_C(1)
+#define BMA4_AKM_POWER_DOWN_MODE                 UINT8_C(0)
+#define BMA4_AKM_SINGLE_MEAS_MODE                UINT8_C(1)
 
 /**\name    SECONDARY_MAG POWER MODE SELECTION    */
 #define BMA4_MAG_FORCE_MODE                      UINT8_C(0)
 #define BMA4_MAG_SUSPEND_MODE                    UINT8_C(1)
 
 /**\name    MAG POWER MODE SELECTION    */
-#define FORCE_MODE                               UINT8_C(0)
-#define SUSPEND_MODE                             UINT8_C(1)
+#define BMA4_FORCE_MODE                          UINT8_C(0)
+#define BMA4_SUSPEND_MODE                        UINT8_C(1)
 
 /**\name    ACCEL POWER MODE    */
-#define ACCEL_MODE_NORMAL                        UINT8_C(0x11)
+#define BMA4_ACCEL_MODE_NORMAL                   UINT8_C(0x11)
 
 /**\name    MAG POWER MODE    */
-#define MAG_MODE_SUSPEND                         UINT8_C(0x18)
+#define BMA4_MAG_MODE_SUSPEND                    UINT8_C(0x18)
 
 /**\name    ENABLE/DISABLE BIT VALUES    */
 #define BMA4_ENABLE                              UINT8_C(0x01)
@@ -610,9 +606,10 @@
 #define BMA4_14_BIT_RESOLUTION                   UINT8_C(14)
 #define BMA4_16_BIT_RESOLUTION                   UINT8_C(16)
 
-/**\name    MULTIPLIER */
-/*! for handling micro-g values */
-#define BMA4XY_MULTIPLIER                        UINT32_C(1000000)
+/**\name FOC MACROS */
+#define BMA4_FOC_SAMPLE_LIMIT                    UINT8_C(128)
+#define BMA4_MAX_NOISE_LIMIT(RANGE_VALUE) (RANGE_VALUE + UINT16_C(255))
+#define BMA4_MIN_NOISE_LIMIT(RANGE_VALUE) (RANGE_VALUE - UINT16_C(255))
 
 /*! for handling float temperature values */
 #define BMA4_SCALE_TEMP                          INT32_C(1000)
@@ -636,7 +633,7 @@
 #define BMA4_MS_TO_US(X) (X * 1000)
 
 #ifndef ABS
-#define ABS(a)           ((a) >= 0 ? (a) : -(a)) /*!< Absolute value */
+#define ABS(a)           ((a) > 0 ? (a) : -(a)) /*!< Absolute value */
 #endif
 
 /**\name    BIT SLICE GET AND SET FUNCTIONS */
@@ -660,16 +657,76 @@
 
 #define BMA4_GET_BITS_POS_0(reg_data, bitname) (reg_data & (bitname##_MSK))
 
-/**\name    TYPEDEF DEFINITIONS */
+/**
+ * BMA4_INTF_RET_TYPE is the read/write interface return type which can be overwritten by the build system.
+ * The default is set to int8_t.
+ */
+#ifndef BMA4_INTF_RET_TYPE
+#define BMA4_INTF_RET_TYPE    int8_t
+#endif
+
+/**
+ * BMA4_RETURN_TYPE is the API return type. The default is set to int8_t.
+ */
+#define BMA4_RETURN_TYPE      int8_t
+
+/**
+ * BST_INTF_RET_SUCCESS is the success return value read/write interface return type which can be
+ * overwritten by the build system. The default is set to 0. It is used to check for a successful
+ * execution of the read/write functions
+ */
+#ifndef BMA4_INTF_RET_SUCCESS
+#define BMA4_INTF_RET_SUCCESS INT8_C(0)
+#endif
+
+/******************************************************************************/
+/*!  @name         TYPEDEF DEFINITIONS                                        */
+/******************************************************************************/
 
 /*!
  * @brief Bus communication function pointer which should be mapped to
- * the platform specific read and write functions of the user
+ * the platform specific read functions of the user
+ *
+ * @param[in] reg_addr       : Register address from which data is read.
+ * @param[out] read_data     : Pointer to data buffer where read data is stored.
+ * @param[in] len            : Number of bytes of data to be read.
+ * @param[in, out] intf_ptr  : Void pointer that can enable the linking of descriptors
+ *                             for interface related call backs.
+ *
+ *  @retval = BMA4_INTF_RET_SUCCESS -> Success
+ *  @retval != BMA4_INTF_RET_SUCCESS  -> Failure Info
+ *
  */
-typedef uint16_t (*bma4_com_fptr_t)(uint8_t dev_addr, uint8_t reg_addr, uint8_t *read_data, uint16_t len);
+typedef BMA4_INTF_RET_TYPE (*bma4_read_fptr_t)(uint8_t reg_addr, uint8_t *read_data, uint32_t len, void *intf_ptr);
 
-/*! delay function pointer */
-typedef void (*bma4_delay_fptr_t)(uint32_t);
+/*!
+ * @brief Bus communication function pointer which should be mapped to
+ * the platform specific write functions of the user
+ *
+ * @param[in] reg_addr      : Register address to which the data is written.
+ * @param[in] read_data     : Pointer to data buffer in which data to be written
+ *                            is stored.
+ * @param[in] len           : Number of bytes of data to be written.
+ * @param[in, out] intf_ptr : Void pointer that can enable the linking of descriptors
+ *                            for interface related call backs
+ *
+ *  @retval = BMA4_INTF_RET_SUCCESS -> Success
+ *  @retval != BMA4_INTF_RET_SUCCESS  -> Failure Info
+ *
+ */
+typedef BMA4_INTF_RET_TYPE (*bma4_write_fptr_t)(uint8_t reg_addr, const uint8_t *read_data, uint32_t len,
+                                                void *intf_ptr);
+
+/*!
+ * @brief Delay function pointer which should be mapped to
+ * delay function of the user
+ *
+ * @param[in] period              : Delay in microseconds.
+ * @param[in, out] intf_ptr       : Void pointer that can enable the linking of descriptors
+ *                                  for interface related call backs
+ *
+ */
+typedef void (*bma4_delay_us_fptr_t)(uint32_t period, void *intf_ptr);
 
 /******************************************************************************/
 /*!  @name         Enum Declarations                                  */
@@ -678,6 +735,12 @@ typedef void (*bma4_delay_fptr_t)(uint32_t);
 enum  bma4_variant {
     BMA42X_VARIANT = 1,
     BMA45X_VARIANT
+};
+
+/* Enumerator describing interfaces */
+enum bma4_intf {
+    BMA4_SPI_INTF,
+    BMA4_I2C_INTF
 };
 
 /**\name    STRUCTURE DEFINITIONS*/
@@ -725,11 +788,14 @@ struct bma4_dev
     /*! Chip id of auxiliary sensor */
     uint8_t aux_chip_id;
 
-    /*! Device address of BMA4 */
-    uint8_t dev_addr;
+    /*! Interface pointer */
+    void *intf_ptr;
 
     /*! Interface detail */
-    uint8_t interface;
+    enum bma4_intf intf;
+
+    /*! Variable that holds error code */
+    BMA4_INTF_RET_TYPE intf_rslt;
 
     /*! Auxiliary sensor information */
     uint8_t aux_sensor;
@@ -743,20 +809,15 @@ struct bma4_dev
     /*! Define the BMA4 variant BMA42X or BMA45X */
     enum bma4_variant variant;
 
-    /*  ! Used to check mag manual/auto mode status
+    /*! Used to check mag manual/auto mode status
      * int8_t mag_manual_enable;
      */
-
-    /*! FIFO related configurations */
-    struct bma4_fifo_frame *fifo;
 
     /*! Config stream data buffer address will be assigned*/
     const uint8_t *config_file_ptr;
 
-    /*! Max read/write length (maximum supported length is 32).
-     * o be set by the user
-     */
-    uint8_t read_write_len;
+    /*! Read/write length */
+    uint16_t read_write_len;
 
     /*! Feature len */
     uint8_t feature_len;
@@ -768,19 +829,19 @@ struct bma4_dev
     struct bma4_aux_config aux_config;
 
     /*! Bus read function pointer */
-    bma4_com_fptr_t bus_read;
+    bma4_read_fptr_t bus_read;
 
     /*! Bus write function pointer */
-    bma4_com_fptr_t bus_write;
+    bma4_write_fptr_t bus_write;
 
-    /*! delay(in millisecond) function pointer */
-    bma4_delay_fptr_t delay_ms;
+    /*! Delay(in microsecond) function pointer */
+    bma4_delay_us_fptr_t delay_us;
 
-    /*! delay(in microsecond) function pointer */
-    bma4_delay_fptr_t delay;
-
-    /* variable to store the size of config file */
+    /*! Variable to store the size of config file */
     uint16_t config_size;
+
+    /*! Variable to store the status of performance mode */
+    uint8_t perf_mode_status;
 };
 
 /*!
@@ -1023,7 +1084,7 @@ struct bma4_mag_fifo_data
 /*!
  * @brief Accel self test difference data structure
  */
-struct selftest_delta_limit
+struct bma4_selftest_delta_limit
 {
     /*! Accel X  data */
     int32_t x;
@@ -1035,6 +1096,46 @@ struct selftest_delta_limit
     int32_t z;
 };
 
-#endif
+/*!  @name Structure to enable an accel axis for FOC */
+struct bma4_accel_foc_g_value
+{
+    /* '0' to disable x-axis and '1' to enable x-axis */
+    uint8_t x;
 
-/* End of __BMA4_H__ */
+    /* '0' to disable y-axis and '1' to enable y-axis */
+    uint8_t y;
+
+    /* '0' to disable z-axis and '1' to enable z-axis */
+    uint8_t z;
+
+    /* '0' for positive input and '1' for negative input */
+    uint8_t sign;
+};
+
+/*! @name Structure to store temporary accelerometer values */
+struct bma4_foc_temp_value
+{
+    /*! X data */
+    int32_t x;
+
+    /*! Y data */
+    int32_t y;
+
+    /*! Z data */
+    int32_t z;
+};
+
+/* Structure to store temporary axes data values */
+struct bma4_temp_axes_val
+{
+    /* X data */
+    int32_t x;
+
+    /* Y data */
+    int32_t y;
+
+    /* Z data */
+    int32_t z;
+};
+
+#endif /* End of BMA4_DEFS_H__ */

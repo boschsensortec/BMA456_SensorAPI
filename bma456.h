@@ -1,42 +1,47 @@
 /**
-* Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
-*
-* BSD-3-Clause
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-* 1. Redistributions of source code must retain the above copyright
-*    notice, this list of conditions and the following disclaimer.
-*
-* 2. Redistributions in binary form must reproduce the above copyright
-*    notice, this list of conditions and the following disclaimer in the
-*    documentation and/or other materials provided with the distribution.
-*
-* 3. Neither the name of the copyright holder nor the names of its
-*    contributors may be used to endorse or promote products derived from
-*    this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-* @file	bma456.h
-* @date	2020-01-10
-* @version	v2.12.8
-*
-*//*! \file bma456.h
- * \brief Sensor Driver for BMA456 sensor
+ * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
+ *
+ * BSD-3-Clause
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived from
+ *    this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * @file       bma456.h
+ * @date       2020-04-09
+ * @version    V2.14.12
+ *
  */
+
+/**
+ * \ingroup bma4xy
+ * \defgroup bma456 BMA456
+ * @brief Sensor driver for BMA456 sensor
+ */
+
 #ifndef BMA456_H
 #define BMA456_H
 
@@ -65,6 +70,10 @@ extern "C" {
 
 /**\name Read/Write Lengths */
 #define BMA456_RD_WR_MIN_LEN          UINT8_C(2)
+
+/*! @name Maximum valid read write length is size of config file array */
+#define BMA456_RD_WR_MAX_LEN          ((uint16_t)sizeof(bma456_config_file))
+
 #define BMA456_NO_MOT_RD_WR_LEN       (BMA456_ANY_MOT_LEN + BMA456_NO_MOT_OFFSET)
 
 /**************************************************************/
@@ -100,13 +109,13 @@ extern "C" {
 /**\name Wrist wakeup enable macros */
 #define BMA456_WRIST_WEAR_EN_MSK    UINT8_C(0x01)
 
-/**\name single tap enable macros */
+/**\name Single tap enable macros */
 #define BMA456_SINGLE_TAP_EN_MSK    UINT8_C(0x01)
 
-/**\name double tap enable macros */
+/**\name Double tap enable macros */
 #define BMA456_DOUBLE_TAP_EN_MSK    UINT8_C(0x01)
 
-/**\name tap sensitivity macros */
+/**\name Tap sensitivity macros */
 #define BMA456_TAP_SENS_POS         UINT8_C(1)
 #define BMA456_TAP_SENS_MSK         UINT8_C(0x0E)
 
@@ -114,7 +123,7 @@ extern "C" {
 #define BMA456_TAP_SEL_POS          UINT8_C(4)
 #define BMA456_TAP_SEL_MSK          UINT8_C(0x10)
 
-/**\name step count output length*/
+/**\name Step count output length */
 #define BMA456_STEP_CNTR_DATA_SIZE  UINT16_C(4)
 
 /**************************************************************/
@@ -294,8 +303,19 @@ struct bma456_stepcounter_settings
 /*!     BMA456 User Interface function prototypes
  ****************************************************************************/
 
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiInit Initialization
+ * @brief Initialize the sensor and device structure
+ */
+
 /*!
- * @brief This API is the entry point.
+ * \ingroup bma456ApiInit
+ * \page bma456_api_bma456_init bma456_init
+ * \code
+ * int8_t bma456_init(struct bma4_dev *dev);
+ * \endcode
+ * @details This API is the entry point.
  * Call this API before using all other APIs.
  * This API reads the chip-id of the sensor and sets the resolution.
  *
@@ -303,52 +323,89 @@ struct bma456_stepcounter_settings
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_init(struct bma4_dev *dev);
+int8_t bma456_init(struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiConfig ConfigFile
+ * @brief Write binary configuration in the sensor
+ */
 
 /*!
- * @brief This API is used to upload the config file to enable the features of
+ * \ingroup bma456ApiConfig
+ * \page bma456_api_bma456_write_config_file bma456_write_config_file
+ * \code
+ * int8_t bma456_write_config_file(struct bma4_dev *dev);
+ * \endcode
+ * @details This API is used to upload the config file to enable the features of
  * the sensor.
  *
  * @param[in] dev : Structure instance of bma4_dev.
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_write_config_file(struct bma4_dev *dev);
+int8_t bma456_write_config_file(struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiConfigId ConfigId
+ * @brief Get Configuration ID of the sensor
+ */
 
 /*!
- * @brief This API is used to get the configuration id of the sensor.
+ * \ingroup bma456ApiConfig
+ * \page bma456_api_bma456_get_config_id bma456_get_config_id
+ * \code
+ * int8_t bma456_get_config_id(uint16_t *config_id, struct bma4_dev *dev);
+ * \endcode
+ * @details This API is used to get the configuration id of the sensor.
  *
  * @param[out] config_id : Pointer variable used to store the configuration id.
  * @param[in] dev : Structure instance of bma4_dev.
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_get_config_id(uint16_t *config_id, struct bma4_dev *dev);
+int8_t bma456_get_config_id(uint16_t *config_id, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiMapInt Map / Unmap Interrupt
+ * @brief Map / Unmap user provided interrupt to interrupt pin1 or pin2 of the sensor
+ */
 
 /*!
- * @brief This API sets/unsets the user provided interrupt to either
+ * \ingroup bma456ApiMapInt
+ * \page bma456_api_bma456_map_interrupt bma456_map_interrupt
+ * \code
+ * int8_t bma456_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets/unsets the user provided interrupt to either
  * interrupt pin1 or pin2 in the sensor.
  *
  * @param[in] int_line: Variable to select either interrupt pin1 or pin2.
  *
+ *@verbatim
  *  int_line    |   Macros
  *  ------------|-------------------
  *  0x00        |  BMA4_INTR1_MAP
  *  0x01      |  BMA4_INTR2_MAP
+ *@endverbatim
  *
  * @param[in] int_map : Variable to specify the interrupts.
  * @param[in] enable : Variable to specify mapping or unmapping of interrupts.
  *
+ *@verbatim
  *  enable  |   Macros
  *  --------|-------------------
  *  0x00    |  BMA4_DISABLE
  *  0x01    |  BMA4_ENABLE
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev.
  *
@@ -371,12 +428,23 @@ uint16_t bma456_get_config_id(uint16_t *config_id, struct bma4_dev *dev);
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, struct bma4_dev *dev);
+int8_t bma456_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiIntS Interrupt Status
+ * @brief Read interrupt status of the sensor
+ */
 
 /*!
- * @brief This API reads the bma456 interrupt status from the sensor.
+ * \ingroup bma456ApiIntS
+ * \page bma456_api_bma456_read_int_status bma456_read_int_status
+ * \code
+ * int8_t bma456_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
+ * \endcode
+ * @details This API reads the bma456 interrupt status from the sensor.
  *
  * @param[out] int_status : Variable to store the interrupt status read from
  * the sensor.
@@ -401,22 +469,35 @@ uint16_t bma456_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
+int8_t bma456_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiFeat Sensor Feature
+ * @brief Enables / Disables features of the sensor
+ */
 
 /*!
- * @brief This API enables/disables the features of the sensor.
+ * \ingroup bma456ApiFeat
+ * \page bma456_api_bma456_feature_enable bma456_feature_enable
+ * \code
+ * int8_t bma456_feature_enable(uint8_t feature, uint8_t enable, struct bma4_dev *dev);
+ * \endcode
+ * @details This API enables/disables the features of the sensor.
  *
  * @param[in] feature : Variable to specify the features which are to be set in
  * bma456 sensor.
  * @param[in] enable : Variable which specifies whether to enable or disable the
  * features in the bma456 sensor.
  *
+ *@verbatim
  *  enable  |   Macros
  *  --------|-------------------
  *  0x00    |  BMA4_DISABLE
  *  0x01    |  BMA4_ENABLE
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev.
  *
@@ -430,24 +511,40 @@ uint16_t bma456_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_feature_enable(uint8_t feature, uint8_t enable, struct bma4_dev *dev);
+int8_t bma456_feature_enable(uint8_t feature, uint8_t enable, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiRemap Remap Axes
+ * @brief Set / Get x, y and z axis re-mapping in the sensor
+ */
 
 /*!
- * @brief This API performs x, y and z axis remapping in the sensor.
+ * \ingroup bma456ApiRemap
+ * \page bma456_api_bma456_set_remap_axes bma456_set_remap_axes
+ * \code
+ * int8_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+ * \endcode
+ * @details This API performs x, y and z axis remapping in the sensor.
  *
  * @param[in] remap_data : Pointer to store axes remapping data.
  * @param[in] dev : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+int8_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
 
 /*!
- * @brief This API reads the x, y and z axis remap data from the sensor.
+ * \ingroup bma456ApiRemap
+ * \page bma456_api_bma456_get_remap_axes bma456_get_remap_axes
+ * \code
+ * int8_t bma456_get_remap_axes(struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+ * \endcode
+ * @details This API reads the x, y and z axis remap data from the sensor.
  *
  * @param[out] remap_data : Pointer to store axis remap data which is read
  * from the bma456 sensor.
@@ -455,12 +552,23 @@ uint16_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struc
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_get_remap_axes(struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+int8_t bma456_get_remap_axes(struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiStepC Step counter
+ * @brief Operations of step counter feature of the sensor
+ */
 
 /*!
- * @brief This API sets the watermark level for step counter interrupt in
+ * \ingroup bma456ApiStepC
+ * \page bma456_api_bma456_step_counter_set_watermark bma456_step_counter_set_watermark
+ * \code
+ * int8_t bma456_step_counter_set_watermark(uint16_t step_counter_wm, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets the watermark level for step counter interrupt in
  * the sensor.
  *
  * @param[in] step_counter_wm : Variable which specifies watermark level
@@ -472,12 +580,17 @@ uint16_t bma456_get_remap_axes(struct bma456_axes_remap *remap_data, struct bma4
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_step_counter_set_watermark(uint16_t step_counter_wm, struct bma4_dev *dev);
+int8_t bma456_step_counter_set_watermark(uint16_t step_counter_wm, struct bma4_dev *dev);
 
 /*!
- * @brief This API gets the water mark level set for step counter interrupt
+ * \ingroup bma456ApiStepC
+ * \page bma456_api_bma456_step_counter_get_watermark bma456_step_counter_get_watermark
+ * \code
+ * int8_t bma456_step_counter_get_watermark(uint16_t *step_counter_wm, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the water mark level set for step counter interrupt
  * in the sensor
  *
  * @param[out] step_counter_wm : Pointer variable which stores the water mark
@@ -489,23 +602,33 @@ uint16_t bma456_step_counter_set_watermark(uint16_t step_counter_wm, struct bma4
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_step_counter_get_watermark(uint16_t *step_counter_wm, struct bma4_dev *dev);
+int8_t bma456_step_counter_get_watermark(uint16_t *step_counter_wm, struct bma4_dev *dev);
 
 /*!
- * @brief This API resets the counted steps of step counter.
+ * \ingroup bma456ApiStepC
+ * \page bma456_api_bma456_reset_step_counter bma456_reset_step_counter
+ * \code
+ * int8_t bma456_reset_step_counter(struct bma4_dev *dev);
+ * \endcode
+ * @details This API resets the counted steps of step counter.
  *
  * @param[in] dev : structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_reset_step_counter(struct bma4_dev *dev);
+int8_t bma456_reset_step_counter(struct bma4_dev *dev);
 
 /*!
- * @brief This API gets the number of counted steps of the step counter
+ * \ingroup bma456ApiStepC
+ * \page bma456_api_bma456_step_counter_output bma456_step_counter_output
+ * \code
+ * int8_t bma456_step_counter_output(uint32_t *step_count, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the number of counted steps of the step counter
  * feature from the sensor.
  *
  * @param[out] step_count : Pointer variable which stores counted steps
@@ -514,33 +637,51 @@ uint16_t bma456_reset_step_counter(struct bma4_dev *dev);
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_step_counter_output(uint32_t *step_count, struct bma4_dev *dev);
+int8_t bma456_step_counter_output(uint32_t *step_count, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiAct Activity Feature
+ * @brief Get output for activity feature of the sensor
+ */
 
 /*!
- * @brief This API gets the output for activity feature.
+ * \ingroup bma456ApiAct
+ * \page bma456_api_bma456_activity_output bma456_activity_output
+ * \code
+ * int8_t bma456_activity_output(uint8_t *activity, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the output for activity feature.
  *
  * @param[out] activity : Pointer variable which stores activity output read
  * from the sensor.
  *
+ *@verbatim
  *       activity |   State
  *  --------------|------------------------
  *        0x00    | BMA456_USER_STATIONARY
  *        0x01    | BMA456_USER_WALKING
  *        0x02    | BMA456_USER_RUNNING
  *        0x03    | BMA456_STATE_INVALID
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_activity_output(uint8_t *activity, struct bma4_dev *dev);
+int8_t bma456_activity_output(uint8_t *activity, struct bma4_dev *dev);
 
 /*!
- * @brief This API gets the parameter1 to parameter7 settings of the step
+ * \ingroup bma456ApiStepC
+ * \page bma456_api_bma456_stepcounter_get_parameter bma456_stepcounter_get_parameter
+ * \code
+ * int8_t bma456_stepcounter_get_parameter(struct bma456_stepcounter_settings *setting, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the parameter1 to parameter7 settings of the step
  * counter feature.
  *
  * @param[out] setting : Pointer to structure variable which stores the
@@ -549,12 +690,17 @@ uint16_t bma456_activity_output(uint8_t *activity, struct bma4_dev *dev);
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_stepcounter_get_parameter(struct bma456_stepcounter_settings *setting, struct bma4_dev *dev);
+int8_t bma456_stepcounter_get_parameter(struct bma456_stepcounter_settings *setting, struct bma4_dev *dev);
 
 /*!
- * @brief This API sets the parameter1 to parameter7 settings of the step
+ * \ingroup bma456ApiStepC
+ * \page bma456_api_bma456_stepcounter_set_parameter bma456_stepcounter_set_parameter
+ * \code
+ * int8_t bma456_stepcounter_set_parameter(const struct bma456_stepcounter_settings *setting, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets the parameter1 to parameter7 settings of the step
  * counter feature in the sensor.
  *
  * @param[in] setting : Pointer to structure variable which stores the
@@ -563,35 +709,60 @@ uint16_t bma456_stepcounter_get_parameter(struct bma456_stepcounter_settings *se
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_stepcounter_set_parameter(const struct bma456_stepcounter_settings *setting, struct bma4_dev *dev);
+int8_t bma456_stepcounter_set_parameter(const struct bma456_stepcounter_settings *setting, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiStepD Step detector
+ * @brief Operations of step detector feature of the sensor
+ */
 
 /*!
- * @brief This API enables or disables the step detector feature in the
+ * \ingroup bma456ApiStepD
+ * \page bma456_api_bma456_step_detector_enable bma456_step_detector_enable
+ * \code
+ * int8_t bma456_step_detector_enable(uint8_t enable, struct bma4_dev *dev);
+ * \endcode
+ * @details This API enables or disables the step detector feature in the
  * sensor.
  *
  * @param[in] enable : Variable used to enable or disable step detector
  *
+ *@verbatim
  *  enable  |   Macros
  *  --------|-------------------
  *  0x00    |  BMA4_DISABLE
  *  0x01    |  BMA4_ENABLE
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_step_detector_enable(uint8_t enable, struct bma4_dev *dev);
+int8_t bma456_step_detector_enable(uint8_t enable, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiAnyMot Any motion Feature
+ * @brief Functions of Any motion feature of the sensor
+ */
 
 /*!
- * @brief This API sets the configuration of any-motion feature in the sensor
+ * \ingroup bma456ApiAnyMot
+ * \page bma456_api_bma456_anymotion_enable_axis bma456_anymotion_enable_axis
+ * \code
+ * int8_t bma456_anymotion_enable_axis(uint8_t axis, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets the configuration of any-motion feature in the sensor
  * This API enables/disables the any-motion feature according to the axis set.
  *
  * @param[in] any_mot           : Pointer to structure variable to configure
  *                                any-motion.
+ *
  * @verbatim
  * -------------------------------------------------------------------------
  *         Structure parameters    |        Description
@@ -616,6 +787,7 @@ uint16_t bma456_step_detector_enable(uint8_t enable, struct bma4_dev *dev);
  * ---------------------------------------------------------------------------
  * @endverbatim
  *
+ *@verbatim
  *  Value    |  axis_en
  *  ---------|-------------------------
  *  0x00     |  BMA456_DIS_ALL_AXIS
@@ -623,21 +795,28 @@ uint16_t bma456_step_detector_enable(uint8_t enable, struct bma4_dev *dev);
  *  0x02     |  BMA456_Y_AXIS_EN
  *  0x04     |  BMA456_Z_AXIS_EN
  *  0x07     |  BMA456_EN_ALL_AXIS
+ *@endverbatim
  *
  * @param[in] dev               : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_set_any_mot_config(const struct bma456_any_no_mot_config *any_mot, struct bma4_dev *dev);
+int8_t bma456_set_any_mot_config(const struct bma456_any_no_mot_config *any_mot, struct bma4_dev *dev);
 
 /*!
- * @brief This API gets the configuration of any-motion feature from the
+ * \ingroup bma456ApiNomot
+ * \page bma456_api_bma456_get_any_motion_config bma456_get_any_motion_config
+ * \code
+ * int8_t bma456_get_any_motion_config(struct bma456_anymotion_config *any_motion, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the configuration of any-motion feature from the
  * sensor.
  *
  * @param[out] any_mot        : Pointer to structure variable to configure
  *                              any-motion.
+ *
  * @verbatim
  * -------------------------------------------------------------------------
  *         Structure parameters    |        Description
@@ -662,6 +841,7 @@ uint16_t bma456_set_any_mot_config(const struct bma456_any_no_mot_config *any_mo
  * ---------------------------------------------------------------------------
  * @endverbatim
  *
+ *@verbatim
  *  Value    |  axis_en
  *  ---------|-------------------------
  *  0x00     |  BMA456_DIS_ALL_AXIS
@@ -669,17 +849,29 @@ uint16_t bma456_set_any_mot_config(const struct bma456_any_no_mot_config *any_mo
  *  0x02     |  BMA456_Y_AXIS_EN
  *  0x04     |  BMA456_Z_AXIS_EN
  *  0x07     |  BMA456_EN_ALL_AXIS
+ *@endverbatim
  *
  * @param[in] dev               : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_get_any_mot_config(struct bma456_any_no_mot_config *any_mot, struct bma4_dev *dev);
+int8_t bma456_get_any_mot_config(struct bma456_any_no_mot_config *any_mot, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiNomot No-Motion Feature
+ * @brief Operations of no-motion feature of the sensor
+ */
 
 /*!
- * @brief This API sets the configuration of no-motion feature in the sensor
+ * \ingroup bma456ApiNomot
+ * \page bma456_api_bma456_set_no_motion_config bma456_set_no_motion_config
+ * \code
+ * int8_t bma456_set_no_motion_config(const struct bma456_nomotion_config *no_motion, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets the configuration of no-motion feature in the sensor
  * This API enables/disables the no-motion feature according to the axis set.
  *
  * @param[in] no_mot                : Pointer to structure variable to configure
@@ -708,6 +900,7 @@ uint16_t bma456_get_any_mot_config(struct bma456_any_no_mot_config *any_mot, str
  * ---------------------------------------------------------------------------
  * @endverbatim
  *
+ *@verbatim
  *  Value    |  axis_en
  *  ---------|-------------------------
  *  0x00     |  BMA456_DIS_ALL_AXIS
@@ -715,21 +908,28 @@ uint16_t bma456_get_any_mot_config(struct bma456_any_no_mot_config *any_mot, str
  *  0x02     |  BMA456_Y_AXIS_EN
  *  0x04     |  BMA456_Z_AXIS_EN
  *  0x07     |  BMA456_EN_ALL_AXIS
+ *@endverbatim
  *
  * @param[in] dev               : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_set_no_mot_config(const struct bma456_any_no_mot_config *no_mot, struct bma4_dev *dev);
+int8_t bma456_set_no_mot_config(const struct bma456_any_no_mot_config *no_mot, struct bma4_dev *dev);
 
 /*!
- * @brief This API gets the configuration of no-motion feature from the
+ * \ingroup bma456ApiAnyMot
+ * \page bma456_api_bma456_get_no_motion_config bma456_get_no_motion_config
+ * \code
+ * int8_t bma456_get_no_motion_config(struct bma456_nomotion_config *no_motion, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the configuration of no-motion feature from the
  * sensor.
  *
  * @param[out] no_mot        : Pointer to structure variable to configure
  *                              no-motion.
+ *
  * @verbatim
  * -------------------------------------------------------------------------
  *         Structure parameters    |        Description
@@ -754,6 +954,7 @@ uint16_t bma456_set_no_mot_config(const struct bma456_any_no_mot_config *no_mot,
  * ---------------------------------------------------------------------------
  * @endverbatim
  *
+ *@verbatim
  *  Value    |  axis_en
  *  ---------|-------------------------
  *  0x00     |  BMA456_DIS_ALL_AXIS
@@ -761,88 +962,125 @@ uint16_t bma456_set_no_mot_config(const struct bma456_any_no_mot_config *no_mot,
  *  0x02     |  BMA456_Y_AXIS_EN
  *  0x04     |  BMA456_Z_AXIS_EN
  *  0x07     |  BMA456_EN_ALL_AXIS
+ *@endverbatim
  *
  * @param[in] dev               : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_get_no_mot_config(struct bma456_any_no_mot_config *no_mot, struct bma4_dev *dev);
+int8_t bma456_get_no_mot_config(struct bma456_any_no_mot_config *no_mot, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma456
+ * \defgroup bma456ApiTap Single Tap and Double tap
+ * @brief Single and Double tap feature operations
+ */
 
 /*!
- * @brief This API sets the sensitivity of single tap wake-up feature in the sensor
+ * \ingroup bma456ApiTap
+ * \page bma456_api_bma456_single_tap_set_sensitivity bma456_single_tap_set_sensitivity
+ * \code
+ * int8_t bma456_single_tap_set_sensitivity(uint8_t sensitivity, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets the sensitivity of single tap wake-up feature in the sensor
  *
  * @param[in] sensitivity : Variable used to specify the sensitivity of the
  * Wake up feature.
  *
+ *@verbatim
  *  Value   |  Sensitivity
  *  --------|-------------------------
  *  0x00    |  MOST SENSITIVE
  *  0x07    |  LEAST SENSITIVE
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_single_tap_set_sensitivity(uint8_t sensitivity, struct bma4_dev *dev);
+int8_t bma456_single_tap_set_sensitivity(uint8_t sensitivity, struct bma4_dev *dev);
 
 /*!
- * @brief This API sets the sensitivity of double tap wake-up feature in the sensor
+ * \ingroup bma456ApiTap
+ * \page bma456_api_bma456_double_tap_set_sensitivity bma456_double_tap_set_sensitivity
+ * \code
+ * int8_t bma456_double_tap_set_sensitivity(uint8_t sensitivity, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets the sensitivity of double tap wake-up feature in the sensor
  *
  * @param[in] sensitivity : Variable used to specify the sensitivity of the
  * Wake up feature.
  *
+ *@verbatim
  *  Value   |  Sensitivity
  *  --------|-------------------------
  *  0x00    |  MOST SENSITIVE
  *  0x07    |  LEAST SENSITIVE
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_double_tap_set_sensitivity(uint8_t sensitivity, struct bma4_dev *dev);
+int8_t bma456_double_tap_set_sensitivity(uint8_t sensitivity, struct bma4_dev *dev);
 
 /*!
- * @brief This API gets the sensitivity of single tap wake up feature in the sensor
+ * \ingroup bma456ApiTap
+ * \page bma456_api_bma456_single_tap_get_sensitivity bma456_single_tap_get_sensitivity
+ * \code
+ * int8_t bma456_single_tap_get_sensitivity(uint8_t *sensitivity, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the sensitivity of single tap wake up feature in the sensor
  *
  * @param[out] sensitivity : Pointer variable which stores the sensitivity
  * value read from the sensor.
+ *
+ *@verbatim
  *  Value   |  Sensitivity
  *  --------|-------------------------
  *  0x00    |  MOST SENSITIVE
  *  0x07    |  LEAST SENSITIVE
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_single_tap_get_sensitivity(uint8_t *sensitivity, struct bma4_dev *dev);
+int8_t bma456_single_tap_get_sensitivity(uint8_t *sensitivity, struct bma4_dev *dev);
 
 /*!
- * @brief This API gets the sensitivity of double tap wake up feature in the sensor
+ * \ingroup bma456ApiTap
+ * \page bma456_api_bma456_double_tap_get_sensitivity bma456_double_tap_get_sensitivity
+ * \code
+ * int8_t bma456_double_tap_get_sensitivity(uint8_t *sensitivity, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the sensitivity of double tap wake up feature in the sensor
  *
  * @param[out] sensitivity : Pointer variable which stores the sensitivity
  * value read from the sensor.
+ *
+ *@verbatim
  *  Value   |  Sensitivity
  *  --------|-------------------------
  *  0x00    |  MOST SENSITIVE
  *  0x07    |  LEAST SENSITIVE
+ *@endverbatim
  *
  * @param[in] dev : Structure instance of bma4_dev
  *
  * @return Result of API execution status
  * @retval 0 -> Success
- * @retval Any non zero value -> Fail
+ * @retval < 0 -> Fail
  */
-uint16_t bma456_double_tap_get_sensitivity(uint8_t *sensitivity, struct bma4_dev *dev);
+int8_t bma456_double_tap_get_sensitivity(uint8_t *sensitivity, struct bma4_dev *dev);
 
 #ifdef __cplusplus
 }

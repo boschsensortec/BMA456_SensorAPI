@@ -159,7 +159,6 @@ uint16_t main(void) {
     fifo_frame.length = 255;
     fifo_frame.fifo_data_enable = BMA4_ENABLE;
     fifo_frame.fifo_header_enable = BMA4_ENABLE;
-    dev.fifo = &fifo_frame;
     
     /* Disable the advanced power save mode to configure the FIFO buffer */
     rslt |= bma4_set_advance_power_save(BMA4_DISABLE, &dev);
@@ -174,7 +173,7 @@ uint16_t main(void) {
     /* Loop forever */
     while (1) {
         /* Read data from the sensor FIFO buffer */
-        rslt |= bma4_read_fifo_data(&dev); // Read FIFO data
+        rslt |= bma4_read_fifo_data(&fifo_frame, &dev); // Read FIFO data
         
         /* Exit the program in case of a failure */
         if (rslt != BMA4_OK)
@@ -186,7 +185,7 @@ uint16_t main(void) {
         /* Parse the FIFO until there are less frames than requested */
         while (n_instances == 36) {
             /* Parse the FIFO buffer and extract required number of accelerometer data frames */
-            rslt |= bma4_extract_accel(sens_data, &n_instances, &dev);
+            rslt |= bma4_extract_accel(sens_data, &n_instances, &fifo_frame, &dev);
             
             /* Exit the program in case of a failure */
             if (rslt != BMA4_OK)
