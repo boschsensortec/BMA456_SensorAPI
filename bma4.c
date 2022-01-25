@@ -1,40 +1,40 @@
 /**
- * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
- *
- * BSD-3-Clause
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @file       bma4.c
- * @date       2020-04-09
- * @version    V2.14.12
- *
- */
+* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+*
+* BSD-3-Clause
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*
+* @file       bma4.c
+* @date       2021-08-06
+* @version    V2.20.4
+*
+*/
 
 /*
  * @file       bma4.c
@@ -92,6 +92,16 @@ struct bma4_accel_offset
  ****************************************************************************/
 
 /*!
+ *  @brief This API validates the bandwidth, odr and perf_mode
+ *  combinations set by the user.
+ *
+ *  param bandwidth[in] : bandwidth value set by the user.
+ *  param perf_mode[in] : perf_mode value set by the user.
+ *  param odr[in]       : odr value set by the user.
+ */
+static int8_t validate_odr_bandwidth_perfmode(uint8_t odr, uint8_t bandwidth, uint8_t perf_mode);
+
+/*!
  *  @brief This API validates the bandwidth and perfmode
  *  value set by the user.
  *
@@ -103,9 +113,17 @@ static int8_t validate_bandwidth_perfmode(uint8_t bandwidth, uint8_t perf_mode);
 /*!
  *  @brief @brief This API validates the ODR value set by the user.
  *
- *  param bandwidth[in] : odr for accelerometer
+ *  param odr[in] : odr value set by the user.
  */
 static int8_t validate_odr(uint8_t odr);
+
+/*!
+ *  @brief This API validates the bandwidth and odr when perf_mode = BMA4_CIC_AVG_MODE
+ *
+ *  param bandwidth[in] : bandwidth value set by the user.
+ *  param odr[in]       : odr value set by the user.
+ */
+static int8_t validate_bandwidth_odr(uint8_t bandwidth, uint8_t odr);
 
 /*!
  *  @brief This API is used to reset the FIFO related configurations
@@ -473,6 +491,11 @@ static int8_t increment_feature_config_addr(struct bma4_dev *dev);
  *  @brief This API reads the 8-bit data from the given register
  *  in the sensor.
  *
+ *  @param[in] addr : Register address.
+ *  @param[in] data : Read data buffer.
+ *  @param[in] len  : No of bytes to read.
+ *  @param[in] dev  : Structure instance of bma4_dev
+ *
  *  @return Result of API execution status
  *  @retval 0 -> Success
  *  @retval < 0 -> Fail
@@ -480,8 +503,27 @@ static int8_t increment_feature_config_addr(struct bma4_dev *dev);
 static int8_t read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_dev *dev);
 
 /*!
+ *  @brief This API reads the 8-bit data from the given register
+ *  when length is less than read write length
+ *
+ *  @param[in] data : Read data buffer.
+ *  @param[in] len  : No of bytes to read.
+ *  @param[in] dev  : Structure instance of bma4_dev
+ *
+ *  @return Result of API execution status
+ *  @retval 0 -> Success
+ *  @retval < 0 -> Fail
+ */
+static int8_t read_within_len_regs(uint8_t *data, uint32_t len, struct bma4_dev *dev);
+
+/*!
  *  @brief This API writes the 8-bit data to the given register
  *  in the sensor.
+ *
+ *  @param[in] addr : Register address.
+ *  @param[in] data : Write data buffer
+ *  @param[in] len  : No of bytes to write
+ *  @param[in] dev  : Structure instance of bma4_dev.
  *
  *  @return Result of API execution status
  *  @retval 0 -> Success
@@ -490,7 +532,23 @@ static int8_t read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_d
 static int8_t write_regs(uint8_t addr, const uint8_t *data, uint32_t len, struct bma4_dev *dev);
 
 /*!
+ *  @brief This API writes the 8-bit data to the given register
+ *  in the sensor for length less than read write length
+ *
+ *  @param[in] data : Write data buffer
+ *  @param[in] len  : No of bytes to write
+ *  @param[in] dev  : Structure instance of bma4_dev.
+ *
+ *  @return Result of API execution status
+ *  @retval 0 -> Success
+ *  @retval < 0 -> Fail
+ */
+static int8_t write_within_len_regs(const uint8_t *data, uint32_t len, struct bma4_dev *dev);
+
+/*!
  *  @brief This API sets the feature config. data start address in the sensor.
+ *
+ *  @param[in] dev  : Structure instance of bma4_dev.
  *
  *  @return Result of API execution status
  *  @retval 0 -> Success
@@ -519,6 +577,97 @@ static int32_t power(int16_t base, uint8_t resolution);
  *  @retval BMA4_E_NULL_PTR -> Null pointer Error
  */
 static int8_t null_pointer_check(const struct bma4_dev *dev);
+
+/*!
+ * @brief This internal API gets the re-mapped x, y and z axes from the sensor.
+ *
+ * @param[out] remap_data      : Structure instance of bma4_axes_remap
+ * @param[in] feature_config   : Array data containing feature configurations
+ * @param[in] index            : Index to which mapping has to be applied
+ * @param[in] feature_len      : Length of feature configurations
+ * @param[in, out] dev         : Structure instance of bma4_dev
+ *
+ * @return Result of API execution status
+ * @retval 0 -> Success
+ * @retval < 0 -> Fail
+ */
+static int8_t get_remap_axes(struct bma4_axes_remap *remap_data,
+                             uint8_t *feature_config,
+                             uint8_t index,
+                             uint8_t feature_len,
+                             struct bma4_dev *dev);
+
+/*!
+ * @brief This internal API sets the re-mapped x, y and z axes in the sensor.
+ *
+ * @param[in] remap_data       : Structure instance of bma4_axes_remap
+ * @param[in] feature_config   : Array data containing feature configurations
+ * @param[in] index            : Index to which mapping has to be applied
+ * @param[in] feature_len      : Length of feature configurations
+ * @param[in, out] dev         : Structure instance of bma4_dev
+ *
+ * @return Result of API execution status
+ * @retval 0 -> Success
+ * @retval < 0 -> Fail
+ */
+static int8_t set_remap_axes(const struct bma4_axes_remap *remap_data,
+                             uint8_t *feature_config,
+                             uint8_t index,
+                             uint8_t feature_len,
+                             struct bma4_dev *dev);
+
+/*!
+ * @brief This internal API is to store re-mapped axis and sign values
+ * in device structure
+ *
+ * @param[in] remap_axis      : Value of re-mapped axis
+ * @param[out]  axis          : Re-mapped axis value stored in device structure
+ * @param[out]  sign          : Re-mapped axis sign stored in device structure
+ *
+ * @return None
+ *
+ * @retval None
+ */
+static void assign_remap_axis(uint8_t remap_axis, uint8_t *axis, uint8_t *sign);
+
+/*!
+ * @brief This internal API is to receive re-mapped axis and sign values
+ * in device structure
+ *
+ * @param[in] remap_axis      : Re-mapped axis value
+ * @param[in]  remap_sign     : Re-mapped axis sign value
+ * @param[out]  axis          : Re-mapped axis stored in local structure
+ *
+ * @return None
+ *
+ * @retval None
+ */
+static void receive_remap_axis(uint8_t remap_axis, uint8_t remap_sign, uint8_t *axis);
+
+/*!
+ * @brief This internal API gets the re-mapped accelerometer/gyroscope data.
+ *
+ * @param[out] data         : Structure instance of bma4_accel.
+ * @param[in]  dev          : Structure instance of bma4_dev.
+ *
+ * @return None
+ *
+ * @retval None
+ */
+static void get_remapped_data(struct bma4_accel *data, const struct bma4_dev *dev);
+
+/*!
+ * @brief This API performs the steps needed for Self test operation
+ *  before reading the Accel Self test data.
+ *
+ * @param[in] sign: Variable used to specify the self test sign
+ * @param[in] dev : Structure instance of bma4_dev
+ *
+ * @return Result of API execution status
+ * @retval 0 -> Success
+ * @retval < 0 -> Fail
+ */
+static int8_t selftest_config(uint8_t sign, struct bma4_dev *dev);
 
 /*!
  * @brief This internal API brings up the secondary interface to access
@@ -583,69 +732,6 @@ static int8_t get_accel_data_difference_and_validate(struct bma4_accel positive,
                                                      struct bma4_accel negative,
                                                      struct bma4_selftest_delta_limit *accel_data_diff_mg,
                                                      const struct bma4_dev *dev);
-
-/*!
- * @brief This internal API is used to verify the right position of the sensor before doing accel FOC
- *
- * @param[in] accel_en     : Variable to store status of accel
- * @param[in] accel_g_axis : Accel FOC axis and sign input
- * @param[in] dev          : Structure instance of bma4_dev.
- *
- * @return Result of API execution status
- *
- * @retval BMA4_OK - Success.
- * @retval BMA4_E_NULL_PTR - Error: Null pointer error
- */
-static int8_t verify_foc_position(uint8_t accel_en,
-                                  const struct bma4_accel_foc_g_value *accel_g_axis,
-                                  struct bma4_dev *dev);
-
-/*!
- * @brief This internal API reads and provides average for 128 samples of sensor data for accel FOC operation
- *
- * @param[in] accel_en      : Variable to store status of accel
- * @param[in] temp_foc_data : Store data samples.
- * @param[in] bma4_dev      : Structure instance of bma4_dev.
- *
- * @return Result of API execution status
- *
- * @retval BMA4_OK
- * @retval BMA4_E_NULL_PTR - Error: Null pointer error
- */
-static int8_t get_average_of_sensor_data(uint8_t accel_en,
-                                         struct bma4_foc_temp_value *temp_foc_data,
-                                         struct bma4_dev *dev);
-
-/*!
- * @brief This internal API validates accel FOC position as per the range
- *
- * @param[in] accel_en : Variable to store status of accel
- * @param[in] accel_g_axis : Accel axis to FOC
- * @param[in] avg_foc_data : Average value of sensor sample datas
- * @param[in] dev : Structure instance of bma4_dev.
- *
- * @return Result of API execution status
- *
- * @retval BMA4_OK - Success.
- * @retval BMA4_E_FAIL - Fail.
- */
-static int8_t validate_foc_position(uint8_t accel_en,
-                                    const struct bma4_accel_foc_g_value *accel_g_axis,
-                                    struct bma4_accel avg_foc_data,
-                                    struct bma4_dev *dev);
-
-/*!
- * @brief This internal API validates accel FOC axis given as input
- *
- * @param[in] avg_foc_data : Average value of sensor sample datas
- * @param[in] dev : Structure instance of bma4_dev.
- *
- * @return Result of API execution status
- *
- * @retval BMA4_OK - Success.
- * @retval BMA4_E_FOC_FAIL - Error: FOC fail
- */
-static int8_t validate_foc_accel_axis(int16_t avg_foc_data, struct bma4_dev *dev);
 
 /*!
  * @brief This internal API saves the configurations before performing FOC.
@@ -753,13 +839,15 @@ static void comp_for_gravity(uint16_t lsb_per_g,
  *                            difference in accelerometer data and lsb_per_g
  *                            value.
  * @param[out] data         : Stores offset data
+ * @param[in] resolution    : Resolution of bma4 sensor
  *
  * @return None
  * @retval None
  */
 static void scale_bma4_accel_offset(uint8_t range,
                                     const struct bma4_offset_delta *comp_data,
-                                    struct bma4_accel_offset *data);
+                                    struct bma4_accel_offset *data,
+                                    uint8_t resolution);
 
 /*!
  * @brief This internal API inverts the accelerometer offset data.
@@ -788,12 +876,13 @@ static int8_t write_bma4_accel_offset(const struct bma4_accel_offset *offset, st
  * @brief This internal API finds the bit position of 3.9mg according to given
  * range and resolution.
  *
- * @param[in] range     : Gravity range of the accelerometer.
+ * @param[in] range        : Gravity range of the accelerometer.
+ * @param[in] resolution   : Resolution of sensor
  *
  * @return Result of API execution status
  * @retval Bit position of 3.9mg
  */
-static int8_t get_bit_pos_3_9mg(uint8_t range);
+static int8_t get_bit_pos_3_9mg(uint8_t range, uint8_t resolution);
 
 /*!
  * @brief This internal API restores the configurations saved before performing
@@ -887,10 +976,6 @@ int8_t bma4_write_config_file(struct bma4_dev *dev)
     /* Disable advanced power save */
     rslt = bma4_set_advance_power_save(BMA4_DISABLE, dev);
 
-    /* Wait for sensor time synchronization. Refer the data-sheet for
-     * more information
-     */
-    dev->delay_us(450, dev->intf_ptr);
     if (rslt == BMA4_OK)
     {
         /* Disable config loading*/
@@ -951,10 +1036,6 @@ int8_t bma4_write_config_file(struct bma4_dev *dev)
  */
 int8_t bma4_write_regs(uint8_t addr, const uint8_t *data, uint32_t len, struct bma4_dev *dev)
 {
-    uint8_t i;
-    uint32_t loop_count;
-    uint16_t overflow;
-    uint16_t index;
     int8_t rslt;
     uint8_t adv_pwr_save = 0;
 
@@ -972,50 +1053,13 @@ int8_t bma4_write_regs(uint8_t addr, const uint8_t *data, uint32_t len, struct b
             if ((adv_pwr_save == BMA4_ENABLE) && (rslt == BMA4_OK))
             {
                 rslt = bma4_set_advance_power_save(BMA4_DISABLE, dev);
-
-                /* Wait for sensor time synchronization. Refer
-                 * the data-sheet for more information
-                 */
-                dev->delay_us(450, dev->intf_ptr);
             }
 
             if (((len % 2) == 0) && (len <= dev->feature_len) && (rslt == BMA4_OK))
             {
                 if (dev->read_write_len < len)
                 {
-                    /* Calculate the no of writes to be
-                     * performed according to the read/write
-                     * length
-                     */
-                    loop_count = len / dev->read_write_len;
-                    overflow = len % dev->read_write_len;
-                    index = 0;
-                    rslt = set_feature_config_start_addr(dev);
-                    if (rslt == BMA4_OK)
-                    {
-                        for (i = 0; i < loop_count; i++)
-                        {
-                            rslt = write_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, dev->read_write_len, dev);
-                            if (rslt == BMA4_OK)
-                            {
-                                rslt = increment_feature_config_addr(dev);
-                                if (rslt == BMA4_OK)
-                                {
-                                    index = index + dev->read_write_len;
-                                }
-                            }
-                        }
-
-                        if ((overflow) && (rslt == BMA4_OK))
-                        {
-                            rslt = write_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, overflow, dev);
-                        }
-
-                        if (rslt == BMA4_OK)
-                        {
-                            rslt = set_feature_config_start_addr(dev);
-                        }
-                    }
+                    rslt = write_within_len_regs(data, len, dev);
                 }
                 else
                 {
@@ -1033,12 +1077,6 @@ int8_t bma4_write_regs(uint8_t addr, const uint8_t *data, uint32_t len, struct b
                 if (adv_pwr_save == BMA4_ENABLE)
                 {
                     rslt = bma4_set_advance_power_save(BMA4_ENABLE, dev);
-
-                    /* Wait for sensor time synchronization.
-                     * Refer the data-sheet for more
-                     * information
-                     */
-                    dev->delay_us(450, dev->intf_ptr);
                 }
             }
         }
@@ -1083,9 +1121,10 @@ static int8_t write_regs(uint8_t addr, const uint8_t *data, uint32_t len, struct
 
         if (dev->intf_rslt == BMA4_INTF_RET_SUCCESS)
         {
-            /* After write operation 2us delay is required when device operates in performance mode whereas 450us
-             * is required when the device operates in suspend and low power mode.
-             * NOTE: For more information refer datasheet section 6.6 */
+            /* After write operation 2us delay is required when
+             * device operates in performance mode whereas
+             * 450us is required when the device operates in suspend and low power mode.
+             * NOTE: For more information refer datasheet */
             if (dev->perf_mode_status == BMA4_ENABLE)
             {
                 dev->delay_us(2, dev->intf_ptr);
@@ -1103,6 +1142,56 @@ static int8_t write_regs(uint8_t addr, const uint8_t *data, uint32_t len, struct
     else
     {
         rslt = BMA4_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
+/*!
+ *  @brief This API writes the 8-bit data to the given register
+ *  in the sensor for length less than read write length
+ */
+static int8_t write_within_len_regs(const uint8_t *data, uint32_t len, struct bma4_dev *dev)
+{
+    int8_t rslt;
+    uint32_t loop_count;
+    uint16_t overflow;
+    uint16_t index;
+    uint32_t i;
+
+    /* Calculate the no of writes to be
+      * performed according to the read/write
+      * length
+      */
+    loop_count = len / dev->read_write_len;
+    overflow = len % dev->read_write_len;
+    index = 0;
+    rslt = set_feature_config_start_addr(dev);
+
+    if (rslt == BMA4_OK)
+    {
+        for (i = 0; i < loop_count; i++)
+        {
+            rslt = write_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, dev->read_write_len, dev);
+            if (rslt == BMA4_OK)
+            {
+                rslt = increment_feature_config_addr(dev);
+                if (rslt == BMA4_OK)
+                {
+                    index = index + dev->read_write_len;
+                }
+            }
+        }
+
+        if ((overflow) && (rslt == BMA4_OK))
+        {
+            rslt = write_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, overflow, dev);
+        }
+
+        if (rslt == BMA4_OK)
+        {
+            rslt = set_feature_config_start_addr(dev);
+        }
     }
 
     return rslt;
@@ -1226,10 +1315,6 @@ static int8_t increment_feature_config_addr(struct bma4_dev *dev)
  */
 int8_t bma4_read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_dev *dev)
 {
-    uint8_t idx;
-    uint32_t loop_count;
-    uint16_t overflow;
-    uint16_t index;
     int8_t rslt;
     uint8_t adv_pwr_save = 0;
 
@@ -1247,49 +1332,13 @@ int8_t bma4_read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_dev
             if (adv_pwr_save == BMA4_ENABLE)
             {
                 rslt = bma4_set_advance_power_save(BMA4_DISABLE, dev);
-
-                /* Wait for sensor time synchronization. Refer
-                 * the data-sheet for more information
-                 */
-                dev->delay_us(450, dev->intf_ptr);
             }
 
             if (((len % 2) == 0) && (len <= dev->feature_len) && (rslt == BMA4_OK))
             {
                 if (dev->read_write_len < len)
                 {
-                    /* Calculate the no of writes to be
-                     * performed according to the read/write
-                     * length
-                     */
-                    loop_count = len / dev->read_write_len;
-                    overflow = len % dev->read_write_len;
-                    index = 0;
-                    rslt = set_feature_config_start_addr(dev);
-                    for (idx = 0; idx < loop_count; idx++)
-                    {
-                        rslt = read_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, dev->read_write_len, dev);
-
-                        if (rslt == BMA4_OK)
-                        {
-                            rslt = increment_feature_config_addr(dev);
-
-                            if (rslt == BMA4_OK)
-                            {
-                                index = index + dev->read_write_len;
-                            }
-                        }
-                    }
-
-                    if ((overflow) && (rslt == BMA4_OK))
-                    {
-                        rslt = read_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, overflow, dev);
-                    }
-
-                    if (rslt == BMA4_OK)
-                    {
-                        rslt = set_feature_config_start_addr(dev);
-                    }
+                    rslt = read_within_len_regs(data, len, dev);
                 }
                 else
                 {
@@ -1307,12 +1356,6 @@ int8_t bma4_read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_dev
                 if (adv_pwr_save == BMA4_ENABLE)
                 {
                     rslt = bma4_set_advance_power_save(BMA4_ENABLE, dev);
-
-                    /* Wait for sensor time synchronization.
-                     * Refer the data-sheet for more
-                     * information
-                     */
-                    dev->delay_us(450, dev->intf_ptr);
                 }
             }
         }
@@ -1341,17 +1384,14 @@ int8_t bma4_read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_dev
 static int8_t read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_dev *dev)
 {
     int8_t rslt;
+    uint16_t indx;
+    uint8_t temp_buff[BMA4_MAX_LEN];
 
     /* Check the dev structure as NULL */
     rslt = null_pointer_check(dev);
 
     if ((rslt == BMA4_OK) && (data != NULL))
     {
-        /* variable used to return the status of communication result*/
-        uint32_t temp_len = len + dev->dummy_byte;
-        uint16_t indx;
-        uint8_t temp_buff[temp_len];
-
         if (dev->intf == BMA4_SPI_INTF)
         {
             /* SPI mask added */
@@ -1359,7 +1399,7 @@ static int8_t read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_d
         }
 
         /* Read the data from the register */
-        dev->intf_rslt = dev->bus_read(addr, temp_buff, temp_len, dev->intf_ptr);
+        dev->intf_rslt = dev->bus_read(addr, temp_buff, (len + dev->dummy_byte), dev->intf_ptr);
 
         if (dev->intf_rslt == BMA4_INTF_RET_SUCCESS)
         {
@@ -1377,6 +1417,57 @@ static int8_t read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_d
     else
     {
         rslt = BMA4_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
+/*!
+ *  @brief This API reads the 8-bit data when length is less than read write length
+ */
+static int8_t read_within_len_regs(uint8_t *data, uint32_t len, struct bma4_dev *dev)
+{
+    uint32_t idx;
+    int8_t rslt;
+    uint32_t loop_count;
+    uint16_t overflow;
+    uint16_t index;
+
+    /* Calculate the no of writes to be
+     * performed according to the read/write
+     * length
+     */
+    loop_count = len / dev->read_write_len;
+    overflow = len % dev->read_write_len;
+    index = 0;
+    rslt = set_feature_config_start_addr(dev);
+
+    if (rslt == BMA4_OK)
+    {
+        for (idx = 0; idx < loop_count; idx++)
+        {
+            rslt = read_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, dev->read_write_len, dev);
+
+            if (rslt == BMA4_OK)
+            {
+                rslt = increment_feature_config_addr(dev);
+
+                if (rslt == BMA4_OK)
+                {
+                    index = index + dev->read_write_len;
+                }
+            }
+        }
+
+        if ((overflow) && (rslt == BMA4_OK))
+        {
+            rslt = read_regs(BMA4_FEATURE_CONFIG_ADDR, data + index, overflow, dev);
+        }
+
+        if (rslt == BMA4_OK)
+        {
+            rslt = set_feature_config_start_addr(dev);
+        }
     }
 
     return rslt;
@@ -1415,34 +1506,6 @@ int8_t bma4_get_error_status(struct bma4_err_reg *err_reg, struct bma4_dev *dev)
 
             /* Mag data ready error*/
             err_reg->aux_err = BMA4_GET_BITSLICE(data, BMA4_AUX_ERR);
-        }
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
- *  @brief This API reads the sensor status from the sensor.
- */
-int8_t bma4_get_status(uint8_t *status, struct bma4_dev *dev)
-{
-    int8_t rslt;
-    uint8_t data = 0;
-
-    /* Check the dev structure as NULL */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (status != NULL))
-    {
-        /* Read the error codes*/
-        rslt = bma4_read_regs(BMA4_STATUS_ADDR, &data, 1, dev);
-        if (rslt == BMA4_OK)
-        {
-            *status = data;
         }
     }
     else
@@ -1499,6 +1562,9 @@ int8_t bma4_read_accel_xyz(struct bma4_accel *accel, struct bma4_dev *dev)
                 accel->y = (accel->y / 0x04);
                 accel->z = (accel->z / 0x04);
             }
+
+            /* Get the re-mapped accelerometer data */
+            get_remapped_data(accel, dev);
         }
     }
     else
@@ -1651,29 +1717,24 @@ int8_t bma4_set_accel_config(const struct bma4_accel_config *accel, struct bma4_
 
     if ((rslt == BMA4_OK) && (accel != NULL))
     {
-        /* check whether the bandwidth and perfmode
-         * settings are valid
-         */
-        rslt = validate_bandwidth_perfmode(accel->bandwidth, accel->perf_mode);
+        /* Check whether the bandwidth , odr and perf_mode combinations are valid */
+        rslt = validate_odr_bandwidth_perfmode(accel->odr, accel->bandwidth, accel->perf_mode);
+
         if (rslt == BMA4_OK)
         {
-            /* check ODR is valid */
-            rslt = validate_odr(accel->odr);
+            accel_config_data[0] = accel->odr & BMA4_ACCEL_ODR_MSK;
+            accel_config_data[0] |= (uint8_t)(accel->bandwidth << BMA4_ACCEL_BW_POS);
+            accel_config_data[0] |= (uint8_t)(accel->perf_mode << BMA4_ACCEL_PERFMODE_POS);
+            accel_config_data[1] = accel->range & BMA4_ACCEL_RANGE_MSK;
+
+            rslt = bma4_write_regs(BMA4_ACCEL_RANGE_ADDR, &accel_config_data[1], 1, dev);
+
             if (rslt == BMA4_OK)
             {
-                accel_config_data[0] = accel->odr & BMA4_ACCEL_ODR_MSK;
-                accel_config_data[0] |= (uint8_t)(accel->bandwidth << BMA4_ACCEL_BW_POS);
-                accel_config_data[0] |= (uint8_t)(accel->perf_mode << BMA4_ACCEL_PERFMODE_POS);
-                accel_config_data[1] = accel->range & BMA4_ACCEL_RANGE_MSK;
+                rslt = bma4_write_regs(BMA4_ACCEL_CONFIG_ADDR, &accel_config_data[0], 1, dev);
 
                 /* Flag bit to store the performance mode status */
                 dev->perf_mode_status = ((accel_config_data[0] & BMA4_ACCEL_PERFMODE_MSK) >> BMA4_ACCEL_PERFMODE_POS);
-
-                rslt = bma4_write_regs(BMA4_ACCEL_CONFIG_ADDR, &accel_config_data[0], 1, dev);
-                if (rslt == BMA4_OK)
-                {
-                    rslt = bma4_write_regs((BMA4_ACCEL_CONFIG_ADDR + 1), &accel_config_data[1], 1, dev);
-                }
             }
         }
     }
@@ -1689,6 +1750,36 @@ int8_t bma4_set_accel_config(const struct bma4_accel_config *accel, struct bma4_
 
 /* Suppressing doxygen warnings triggered for same static function names present across various sensor variant
  * directories */
+
+/*!
+ *  @brief This API validates the bandwidth, odr and perf_mode
+ *  combinations set by the user.
+ */
+static int8_t validate_odr_bandwidth_perfmode(uint8_t odr, uint8_t bandwidth, uint8_t perf_mode)
+{
+    int8_t rslt;
+
+    /* Check bandwidth and perf_mode combinations */
+    rslt = validate_bandwidth_perfmode(bandwidth, perf_mode);
+
+    if (rslt == BMA4_OK)
+    {
+        /* Check ODR validity */
+        rslt = validate_odr(odr);
+    }
+
+    if (rslt == BMA4_OK)
+    {
+        /* Validate ODR and bandwidth combinations when perf_mode = BMA4_CIC_AVG_MODE */
+        if (perf_mode == BMA4_CIC_AVG_MODE)
+        {
+            rslt = validate_bandwidth_odr(bandwidth, odr);
+        }
+    }
+
+    return rslt;
+
+}
 
 /*!
  *  @brief This API validates the bandwidth and perf_mode
@@ -1733,6 +1824,52 @@ static int8_t validate_odr(uint8_t odr)
     {
         /* If odr is not valid return error */
         rslt = BMA4_E_OUT_OF_RANGE;
+    }
+
+    return rslt;
+}
+
+/*!
+ *  @brief This API validates the bandwidth and odr when perf_mode = BMA4_CIC_AVG_MODE
+ */
+static int8_t validate_bandwidth_odr(uint8_t bandwidth, uint8_t odr)
+{
+    int8_t rslt = BMA4_OK;
+    uint8_t index;
+
+    /*
+     * Array contains ODR values
+     * From BMA4_OUTPUT_DATA_RATE_0_78HZ (value = 1)
+     * To BMA4_OUTPUT_DATA_RATE_400HZ (value = 10)
+     */
+    uint8_t accel_odr[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+    /*
+     * Array contains valid bandwidth values for each ODR
+     */
+    uint8_t valid_bw[10] = { 7, 7, 7, 7, 6, 5, 4, 3, 2, 1 };
+
+    /*
+     * For ODR - 800Hz and 1600Hz, none of the bandwidth is applicable
+     */
+    if ((odr == BMA4_OUTPUT_DATA_RATE_800HZ) || (odr == BMA4_OUTPUT_DATA_RATE_1600HZ))
+    {
+        rslt = BMA4_E_AVG_MODE_INVALID_CONF;
+    }
+
+    /*
+     * Maximum valid bandwidth value for accel_odr[index] is the
+     * corresponding value in valid_bw[index]
+     */
+    for (index = 0; index < 10; index++)
+    {
+        if (odr == accel_odr[index])
+        {
+            if (bandwidth > valid_bw[index])
+            {
+                rslt = BMA4_E_AVG_MODE_INVALID_CONF;
+            }
+        }
     }
 
     return rslt;
@@ -1861,7 +1998,9 @@ int8_t bma4_set_accel_enable(uint8_t accel_en, struct bma4_dev *dev)
         if (rslt == BMA4_OK)
         {
             data = BMA4_SET_BITSLICE(data, BMA4_ACCEL_ENABLE, accel_en);
+
             rslt = bma4_write_regs(BMA4_POWER_CTRL_ADDR, &data, 1, dev);
+            dev->delay_us(25000, dev->intf_ptr);
         }
     }
 
@@ -2403,11 +2542,15 @@ int8_t bma4_get_mag_burst(uint8_t *mag_burst, struct bma4_dev *dev)
 
 /*!
  *  @brief This API reads the FIFO data of Accel and/or Mag sensor
+ *  NOTE : Dummy byte (for SPI Interface) required for FIFO data read
+ *  must be given as part of data pointer in struct bma4_fifo_frame
  */
 int8_t bma4_read_fifo_data(struct bma4_fifo_frame *fifo, struct bma4_dev *dev)
 {
     int8_t rslt;
     uint8_t data = 0;
+    uint8_t fifo_config_1 = 0;
+    uint16_t fifo_length = 0;
     uint8_t addr = BMA4_FIFO_DATA_ADDR;
 
     /* Check the dev structure as NULL */
@@ -2418,8 +2561,45 @@ int8_t bma4_read_fifo_data(struct bma4_fifo_frame *fifo, struct bma4_dev *dev)
         /* reset the fifo data structure */
         reset_fifo_data_structure(fifo);
 
-        /* read the fifo data */
-        rslt = bma4_read_regs(addr, fifo->data, fifo->length, dev);
+        if (dev->intf == BMA4_SPI_INTF)
+        {
+            /* SPI mask added */
+            addr = addr | BMA4_SPI_RD_MASK;
+        }
+
+        /* Read available fifo length */
+        rslt = bma4_get_fifo_length(&fifo_length, dev);
+
+        if (rslt == BMA4_OK)
+        {
+            /* Read FIFO header enable configuration */
+            rslt = bma4_read_regs(BMA4_FIFO_CONFIG_1_ADDR, &fifo_config_1, 1, dev);
+
+            if (rslt == BMA4_OK)
+            {
+                /* If fifo header is enabled, add sensortime overhead byte to total FIFO length */
+                if ((fifo_config_1 & BMA4_FIFO_HEADER))
+                {
+                    /* This update will take care of dummy byte necessity based on interface selection */
+                    fifo->length = (fifo_length + BMA4_SENSORTIME_OVERHEAD_BYTE + dev->dummy_byte);
+                }
+                /* If fifo header is enabled, exclude addition of sensortime overhead byte to total FIFO length */
+                else
+                {
+                    /* This update will take care of dummy byte necessity based on interface selection */
+                    fifo->length = (fifo_length + dev->dummy_byte);
+                }
+            }
+
+            /* Read FIFO data */
+            dev->intf_rslt = dev->bus_read(addr, fifo->data, (uint32_t)fifo->length, dev->intf_ptr);
+
+            /* If interface read fails, update rslt variable with communication failure */
+            if (dev->intf_rslt != BMA4_INTF_RET_SUCCESS)
+            {
+                rslt = BMA4_E_COM_FAIL;
+            }
+        }
 
         if (rslt == BMA4_OK)
         {
@@ -2464,17 +2644,25 @@ int8_t bma4_extract_accel(struct bma4_accel *accel_data,
 
     if ((rslt == BMA4_OK) && (accel_data != NULL) && (accel_length != NULL) && (fifo != NULL))
     {
+        /* Check if this is the first iteration of data unpacking
+         * if yes, then consider dummy byte on SPI
+         */
+        if (fifo->accel_byte_start_idx == 0)
+        {
+            /* Dummy byte included */
+            fifo->accel_byte_start_idx = dev->dummy_byte;
+        }
+
         /* Parsing the FIFO data in header-less mode */
         if (fifo->fifo_header_enable == 0)
         {
             get_accel_len_to_parse(&data_index, &data_read_length, accel_length, fifo);
+
             for (; data_index < data_read_length;)
             {
                 unpack_acc_frm(accel_data, &data_index, &accel_index, fifo->fifo_data_enable, fifo, dev);
 
-                /*Check for the availability of next
-                 * two bytes of FIFO data
-                 */
+                /* Checks for the availability of set of FIFO data */
                 check_empty_fifo(&data_index, fifo);
             }
 
@@ -2518,6 +2706,15 @@ int8_t bma4_extract_mag(const struct bma4_mag *mag_data,
 
     if ((rslt == BMA4_OK) && (mag_data != NULL) && (mag_length != NULL) && (fifo != NULL))
     {
+        /* Check if this is the first iteration of data unpacking
+         * if yes, then consider dummy byte on SPI
+         */
+        if (fifo->mag_byte_start_idx == 0)
+        {
+            /* Dummy byte included */
+            fifo->mag_byte_start_idx = dev->dummy_byte;
+        }
+
         /* Parsing the FIFO data in header-less mode */
         if (fifo->fifo_header_enable == 0)
         {
@@ -3009,63 +3206,6 @@ int8_t bma4_set_if_mode(uint8_t if_mode, struct bma4_dev *dev)
 }
 
 /*!
- *  @brief This API reads the data ready status of Accel from the sensor.
- */
-int8_t bma4_get_accel_data_rdy(uint8_t *data_rdy, struct bma4_dev *dev)
-{
-    int8_t rslt;
-    uint8_t data = 0;
-
-    /* Check the dev structure as NULL */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (data_rdy != NULL))
-    {
-        /*Reads the status of Accel data ready*/
-        rslt = bma4_read_regs(BMA4_STATUS_ADDR, &data, 1, dev);
-        if (rslt == BMA4_OK)
-        {
-            *data_rdy = BMA4_GET_BITSLICE(data, BMA4_STAT_DATA_RDY_ACCEL);
-        }
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
- *  @brief This API reads the data ready status of Mag from the sensor.
- *  The status get reset when Mag data register is read.
- */
-int8_t bma4_get_mag_data_rdy(uint8_t *data_rdy, struct bma4_dev *dev)
-{
-    int8_t rslt;
-    uint8_t data = 0;
-
-    /* Check the dev structure as NULL */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (data_rdy != NULL))
-    {
-        /*Reads the status of Accel data ready*/
-        rslt = bma4_read_regs(BMA4_STATUS_ADDR, &data, 1, dev);
-        if (rslt == BMA4_OK)
-        {
-            *data_rdy = BMA4_GET_BITSLICE(data, BMA4_STAT_DATA_RDY_MAG);
-        }
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
  *  @brief This API reads the ASIC status from the sensor.
  *  The status information is mentioned in the below table.
  */
@@ -3167,13 +3307,13 @@ int8_t bma4_perform_accel_selftest(int8_t *result, struct bma4_dev *dev)
     /*! Structure for difference of accel values in mg */
     struct bma4_selftest_delta_limit accel_data_diff_mg = { 0, 0, 0 };
 
-    *result = BMA4_SELFTEST_FAIL;
-
     /* Check the dev structure as NULL */
     rslt = null_pointer_check(dev);
 
-    if (rslt == BMA4_OK)
+    if ((rslt == BMA4_OK) && (result != NULL))
     {
+        *result = BMA4_SELFTEST_FAIL;
+
         rslt = set_accel_selftest_config(dev);
 
         if (rslt == BMA4_OK)
@@ -3181,7 +3321,7 @@ int8_t bma4_perform_accel_selftest(int8_t *result, struct bma4_dev *dev)
             /* Wait for 2ms after accel self-test config please refer data sheet data sheet 4.9. sensor self-test */
             dev->delay_us(BMA4_MS_TO_US(2), dev->intf_ptr);
 
-            rslt = bma4_selftest_config(BMA4_ENABLE, dev);
+            rslt = selftest_config(BMA4_ENABLE, dev);
 
             if (rslt == BMA4_OK)
             {
@@ -3195,7 +3335,7 @@ int8_t bma4_perform_accel_selftest(int8_t *result, struct bma4_dev *dev)
 
                 if (rslt == BMA4_OK)
                 {
-                    rslt = bma4_selftest_config(BMA4_DISABLE, dev);
+                    rslt = selftest_config(BMA4_DISABLE, dev);
 
                     if (rslt == BMA4_OK)
                     {
@@ -3222,6 +3362,10 @@ int8_t bma4_perform_accel_selftest(int8_t *result, struct bma4_dev *dev)
                 }
             }
         }
+    }
+    else
+    {
+        rslt = BMA4_E_NULL_PTR;
     }
 
     return rslt;
@@ -3261,53 +3405,6 @@ static int8_t get_accel_data_difference_and_validate(struct bma4_accel positive,
 /*! @endcond */
 
 /*!
- *  @brief This API performs the steps needed for self-test operation
- *  before reading the Accel self-test data.
- */
-int8_t bma4_selftest_config(uint8_t sign, struct bma4_dev *dev)
-{
-    int8_t rslt;
-
-    /* NULL pointer check */
-    rslt = null_pointer_check(dev);
-
-    if (rslt == BMA4_OK)
-    {
-        rslt = set_accel_selftest_enable(BMA4_ENABLE, dev);
-
-        if (rslt == BMA4_OK)
-        {
-            rslt = set_accel_selftest_sign(sign, dev);
-
-            if (rslt == BMA4_OK)
-            {
-                /* Set self-test amplitude based on variant */
-                switch (dev->variant)
-                {
-                    case BMA42X_VARIANT:
-
-                        /* Set self-test amplitude to high for BMA42x */
-                        rslt = set_accel_selftest_amp(BMA4_ENABLE, dev);
-                        break;
-
-                    case BMA45X_VARIANT:
-
-                        /* Set self-test amplitude to low for BMA45x */
-                        rslt = set_accel_selftest_amp(BMA4_DISABLE, dev);
-                        break;
-
-                    default:
-                        rslt = BMA4_E_INVALID_SENSOR;
-                        break;
-                }
-            }
-        }
-    }
-
-    return rslt;
-}
-
-/*!
  *  @brief API sets the interrupt to either interrupt1 or
  *  interrupt2 pin in the sensor.
  */
@@ -3328,10 +3425,10 @@ int8_t bma4_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, st
             if (enable == TRUE)
             {
                 /* Feature interrupt mapping */
-                data[int_line] = (uint8_t)(int_map & (0x00FF));
+                data[int_line] |= (uint8_t)(int_map & (0x00FF));
 
                 /* Hardware interrupt mapping */
-                data[2] = (uint8_t)((int_map & (0xFF00)) >> 8);
+                data[2] |= (uint8_t)((int_map & (0xFF00)) >> 8);
             }
             else
             {
@@ -3508,7 +3605,7 @@ int8_t bma4_set_fifo_config(uint8_t config, uint8_t enable, struct bma4_dev *dev
             if (rslt == BMA4_OK)
             {
                 dev->delay_us(BMA4_GEN_READ_WRITE_DELAY, dev->intf_ptr);
-                rslt = bma4_write_regs((BMA4_FIFO_CONFIG_0_ADDR + 1), &data[1], 1, dev);
+                rslt = bma4_write_regs(BMA4_FIFO_CONFIG_1_ADDR, &data[1], 1, dev);
             }
         }
     }
@@ -3651,50 +3748,6 @@ int8_t bma4_read_int_status(uint16_t *int_status, struct bma4_dev *dev)
 }
 
 /*!
- *  @brief This API reads the Feature interrupt status from the sensor.
- */
-int8_t bma4_read_int_status_0(uint8_t *int_status_0, struct bma4_dev *dev)
-{
-    int8_t rslt;
-
-    /* Check the dev structure as NULL */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (int_status_0 != NULL))
-    {
-        rslt = bma4_read_regs(BMA4_INT_STAT_0_ADDR, int_status_0, 1, dev);
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
- *  @brief This API reads the Hardware interrupt status from the sensor.
- */
-int8_t bma4_read_int_status_1(uint8_t *int_status_1, struct bma4_dev *dev)
-{
-    int8_t rslt;
-
-    /* Check the dev structure as NULL */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (int_status_1 != NULL))
-    {
-        rslt = bma4_read_regs(BMA4_INT_STAT_1_ADDR, int_status_1, 1, dev);
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
  * @brief This API initializes the auxiliary interface to access
  * auxiliary sensor
  */
@@ -3795,6 +3848,82 @@ int8_t bma4_aux_write(uint8_t aux_reg_addr, const uint8_t *aux_data, uint16_t le
     else
     {
         rslt = BMA4_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
+/*!
+ * @brief This API gets the re-mapped x, y and z axes from the sensor and
+ * updates the values in the device structure.
+ */
+int8_t bma4_get_remap_axes(struct bma4_remap *remap_data,
+                           uint8_t *feature_config,
+                           uint8_t index,
+                           uint8_t feature_len,
+                           struct bma4_dev *dev)
+{
+    /* Variable to define error */
+    int8_t rslt;
+
+    /* Null-pointer check */
+    rslt = null_pointer_check(dev);
+
+    if (rslt == BMA4_OK)
+    {
+        /* Get the re-mapped axes from the sensor */
+        rslt = get_remap_axes(&dev->remap, feature_config, index, feature_len, dev);
+        if (rslt == BMA4_OK)
+        {
+            /* Store the receive re-mapped axis and sign from device structure */
+            receive_remap_axis(dev->remap.x_axis, dev->remap.x_axis_sign, &remap_data->x);
+            receive_remap_axis(dev->remap.y_axis, dev->remap.y_axis_sign, &remap_data->y);
+            receive_remap_axis(dev->remap.z_axis, dev->remap.z_axis_sign, &remap_data->z);
+        }
+    }
+
+    return rslt;
+}
+
+/*!
+ * @brief This API sets the re-mapped x, y and z axes to the sensor and
+ * updates the them in the device structure.
+ */
+int8_t bma4_set_remap_axes(const struct bma4_remap *remapped_axis,
+                           uint8_t *feature_config,
+                           uint8_t index,
+                           uint8_t feature_len,
+                           struct bma4_dev *dev)
+{
+    /* Variable to define error */
+    int8_t rslt;
+
+    /* Variable to store all the re-mapped axes */
+    uint8_t remap_axes = 0;
+
+    /* Null-pointer check */
+    rslt = null_pointer_check(dev);
+
+    if (rslt == BMA4_OK)
+    {
+        /* Check whether all the axes are re-mapped */
+        remap_axes = remapped_axis->x | remapped_axis->y | remapped_axis->z;
+
+        /* If all the axes are re-mapped */
+        if ((remap_axes & BMA4_AXIS_MASK) == BMA4_AXIS_MASK)
+        {
+            /* Store the value of re-mapped in device structure */
+            assign_remap_axis(remapped_axis->x, &dev->remap.x_axis, &dev->remap.x_axis_sign);
+            assign_remap_axis(remapped_axis->y, &dev->remap.y_axis, &dev->remap.y_axis_sign);
+            assign_remap_axis(remapped_axis->z, &dev->remap.z_axis, &dev->remap.z_axis_sign);
+
+            /* Set the re-mapped axes in the sensor */
+            rslt = set_remap_axes(&dev->remap, feature_config, index, feature_len, dev);
+        }
+        else
+        {
+            rslt = BMA4_E_REMAP_ERROR;
+        }
     }
 
     return rslt;
@@ -3971,7 +4100,7 @@ static int8_t set_accel_selftest_config(struct bma4_dev *dev)
     accel.range = BMA4_ACCEL_RANGE_8G;
 
     rslt = bma4_set_accel_enable(BMA4_ENABLE, dev);
-    dev->delay_us(BMA4_MS_TO_US(1), dev->intf_ptr);
+    dev->delay_us(BMA4_MS_TO_US(5), dev->intf_ptr);
 
     if (rslt == BMA4_OK)
     {
@@ -4045,11 +4174,15 @@ static void get_accel_len_to_parse(uint16_t *start_idx,
  */
 static void check_empty_fifo(uint16_t *data_index, const struct bma4_fifo_frame *fifo)
 {
-    if ((*data_index + 2) < fifo->length)
+    if ((*data_index + 6) < fifo->length)
     {
-        /* Check if FIFO is empty */
-        if ((fifo->data[*data_index] == BMA4_FIFO_MSB_CONFIG_CHECK) &&
-            (fifo->data[*data_index + 1] == BMA4_FIFO_LSB_CONFIG_CHECK))
+        /* Check if FIFO is empty (For X, Y and Z)*/
+        if (((fifo->data[(*data_index)] == BMA4_FIFO_LSB_CONFIG_CHECK) &&
+             (fifo->data[(*data_index) + 1] == BMA4_FIFO_MSB_CONFIG_CHECK)) &&
+            ((fifo->data[(*data_index) + 2] == BMA4_FIFO_LSB_CONFIG_CHECK) &&
+             (fifo->data[(*data_index) + 3] == BMA4_FIFO_MSB_CONFIG_CHECK)) &&
+            ((fifo->data[(*data_index) + 4] == BMA4_FIFO_LSB_CONFIG_CHECK) &&
+             (fifo->data[(*data_index) + 5] == BMA4_FIFO_MSB_CONFIG_CHECK)))
         {
             /*Update the data index as complete*/
             *data_index = fifo->length;
@@ -4071,14 +4204,6 @@ static void extract_accel_header_mode(struct bma4_accel *accel_data,
     uint16_t data_index;
     uint16_t accel_index = 0;
     uint16_t frame_to_read = *accel_length;
-
-    /*Check if this is the first iteration of data unpacking
-     * if yes, then consider dummy byte on SPI
-     */
-    if (fifo->accel_byte_start_idx == 0)
-    {
-        fifo->accel_byte_start_idx = dev->dummy_byte;
-    }
 
     for (data_index = fifo->accel_byte_start_idx; data_index < fifo->length;)
     {
@@ -4303,14 +4428,6 @@ static int8_t extract_mag_header_mode(const struct bma4_mag *data,
     uint16_t data_index;
     uint16_t mag_index = 0;
     uint16_t frame_to_read = *len;
-
-    /*Check if this is the first iteration of data unpacking
-     * if yes, then consider dummy byte on SPI
-     */
-    if (fifo->mag_byte_start_idx == 0)
-    {
-        fifo->mag_byte_start_idx = dev->dummy_byte;
-    }
 
     for (data_index = fifo->mag_byte_start_idx; data_index < fifo->length;)
     {
@@ -4598,105 +4715,71 @@ static void move_next_frame(uint16_t *data_index, uint8_t current_frame_length, 
 static int8_t validate_selftest(const struct bma4_selftest_delta_limit *accel_data_diff, const struct bma4_dev *dev)
 {
     int8_t rslt = 0;
+    uint16_t x_axis_signal_diff = 0;
+    uint16_t y_axis_signal_diff = 0;
+    uint16_t z_axis_signal_diff = 0;
 
     /* Set self-test amplitude based on variant */
     switch (dev->variant)
     {
         case BMA42X_VARIANT:
+            x_axis_signal_diff = BMA42X_ST_ACC_X_AXIS_SIGNAL_DIFF;
+            y_axis_signal_diff = BMA42X_ST_ACC_Y_AXIS_SIGNAL_DIFF;
+            z_axis_signal_diff = BMA42X_ST_ACC_Z_AXIS_SIGNAL_DIFF;
+            break;
 
-            /* Validating accel data by comparing with minimum value of the
-             * axes in mg. For BMA42x - > x axis limit 400mg, y axis limit
-             * 800mg and z axis limit 400mg
-             */
-            if ((accel_data_diff->x <= BMA42X_ST_ACC_X_AXIS_SIGNAL_DIFF) &&
-                (accel_data_diff->y <= BMA42X_ST_ACC_Y_AXIS_SIGNAL_DIFF) &&
-                (accel_data_diff->z <= BMA42X_ST_ACC_Z_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_Y_AND_Z_AXIS_FAILED;
-            }
-            else if ((accel_data_diff->x <= BMA42X_ST_ACC_X_AXIS_SIGNAL_DIFF) &&
-                     (accel_data_diff->y <= BMA42X_ST_ACC_Y_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_AND_Y_AXIS_FAILED;
-            }
-            else if ((accel_data_diff->x <= BMA42X_ST_ACC_X_AXIS_SIGNAL_DIFF) &&
-                     (accel_data_diff->z <= BMA42X_ST_ACC_Z_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_AND_Z_AXIS_FAILED;
-            }
-            else if ((accel_data_diff->y <= BMA42X_ST_ACC_Y_AXIS_SIGNAL_DIFF) &&
-                     (accel_data_diff->z <= BMA42X_ST_ACC_Z_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_Y_AND_Z_AXIS_FAILED;
-            }
-            else if (accel_data_diff->x <= BMA42X_ST_ACC_X_AXIS_SIGNAL_DIFF)
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_AXIS_FAILED;
-            }
-            else if (accel_data_diff->y <= BMA42X_ST_ACC_Y_AXIS_SIGNAL_DIFF)
-            {
-                rslt = BMA4_SELFTEST_DIFF_Y_AXIS_FAILED;
-            }
-            else if (accel_data_diff->z <= BMA42X_ST_ACC_Z_AXIS_SIGNAL_DIFF)
-            {
-                rslt = BMA4_SELFTEST_DIFF_Z_AXIS_FAILED;
-            }
-            else
-            {
-                rslt = BMA4_SELFTEST_PASS;
-            }
-
+        case BMA42X_B_VARIANT:
+            x_axis_signal_diff = BMA42X_B_ST_ACC_X_AXIS_SIGNAL_DIFF;
+            y_axis_signal_diff = BMA42X_B_ST_ACC_Y_AXIS_SIGNAL_DIFF;
+            z_axis_signal_diff = BMA42X_B_ST_ACC_Z_AXIS_SIGNAL_DIFF;
             break;
 
         case BMA45X_VARIANT:
-
-            /* Validating accel data by comparing with minimum value of the
-             * axes in mg. For BMA45x - > x axis limit 1800mg, y axis limit
-             * 1800mg and z axis limit 1800mg
-             */
-            if ((accel_data_diff->x <= BMA45X_ST_ACC_X_AXIS_SIGNAL_DIFF) &&
-                (accel_data_diff->y <= BMA45X_ST_ACC_Y_AXIS_SIGNAL_DIFF) &&
-                (accel_data_diff->z <= BMA45X_ST_ACC_Z_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_Y_AND_Z_AXIS_FAILED;
-            }
-            else if ((accel_data_diff->x <= BMA45X_ST_ACC_X_AXIS_SIGNAL_DIFF) &&
-                     (accel_data_diff->y <= BMA45X_ST_ACC_Y_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_AND_Y_AXIS_FAILED;
-            }
-            else if ((accel_data_diff->x <= BMA45X_ST_ACC_X_AXIS_SIGNAL_DIFF) &&
-                     (accel_data_diff->z <= BMA45X_ST_ACC_Z_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_AND_Z_AXIS_FAILED;
-            }
-            else if ((accel_data_diff->y <= BMA45X_ST_ACC_Y_AXIS_SIGNAL_DIFF) &&
-                     (accel_data_diff->z <= BMA45X_ST_ACC_Z_AXIS_SIGNAL_DIFF))
-            {
-                rslt = BMA4_SELFTEST_DIFF_Y_AND_Z_AXIS_FAILED;
-            }
-            else if (accel_data_diff->x < BMA45X_ST_ACC_X_AXIS_SIGNAL_DIFF)
-            {
-                rslt = BMA4_SELFTEST_DIFF_X_AXIS_FAILED;
-            }
-            else if (accel_data_diff->y < BMA45X_ST_ACC_Y_AXIS_SIGNAL_DIFF)
-            {
-                rslt = BMA4_SELFTEST_DIFF_Y_AXIS_FAILED;
-            }
-            else if (accel_data_diff->z < BMA45X_ST_ACC_Z_AXIS_SIGNAL_DIFF)
-            {
-                rslt = BMA4_SELFTEST_DIFF_Z_AXIS_FAILED;
-            }
-            else
-            {
-                rslt = BMA4_SELFTEST_PASS;
-            }
-
+            x_axis_signal_diff = BMA45X_ST_ACC_X_AXIS_SIGNAL_DIFF;
+            y_axis_signal_diff = BMA45X_ST_ACC_Y_AXIS_SIGNAL_DIFF;
+            z_axis_signal_diff = BMA45X_ST_ACC_Z_AXIS_SIGNAL_DIFF;
             break;
 
         default:
             rslt = BMA4_E_INVALID_SENSOR;
             break;
+    }
+
+    if (rslt != BMA4_E_INVALID_SENSOR)
+    {
+        if ((accel_data_diff->x <= x_axis_signal_diff) && (accel_data_diff->y <= y_axis_signal_diff) &&
+            (accel_data_diff->z <= z_axis_signal_diff))
+        {
+            rslt = BMA4_SELFTEST_DIFF_X_Y_AND_Z_AXIS_FAILED;
+        }
+        else if ((accel_data_diff->x <= x_axis_signal_diff) && (accel_data_diff->y <= y_axis_signal_diff))
+        {
+            rslt = BMA4_SELFTEST_DIFF_X_AND_Y_AXIS_FAILED;
+        }
+        else if ((accel_data_diff->x <= x_axis_signal_diff) && (accel_data_diff->z <= z_axis_signal_diff))
+        {
+            rslt = BMA4_SELFTEST_DIFF_X_AND_Z_AXIS_FAILED;
+        }
+        else if ((accel_data_diff->y <= y_axis_signal_diff) && (accel_data_diff->z <= z_axis_signal_diff))
+        {
+            rslt = BMA4_SELFTEST_DIFF_Y_AND_Z_AXIS_FAILED;
+        }
+        else if (accel_data_diff->x <= x_axis_signal_diff)
+        {
+            rslt = BMA4_SELFTEST_DIFF_X_AXIS_FAILED;
+        }
+        else if (accel_data_diff->y <= y_axis_signal_diff)
+        {
+            rslt = BMA4_SELFTEST_DIFF_Y_AXIS_FAILED;
+        }
+        else if (accel_data_diff->z <= z_axis_signal_diff)
+        {
+            rslt = BMA4_SELFTEST_DIFF_Z_AXIS_FAILED;
+        }
+        else
+        {
+            rslt = BMA4_SELFTEST_PASS;
+        }
     }
 
     return rslt;
@@ -4936,6 +5019,11 @@ static int8_t null_pointer_check(const struct bma4_dev *dev)
 int8_t bma4_soft_reset(struct bma4_dev *dev)
 {
     int8_t rslt;
+
+    /* Variable to read the dummy byte */
+    uint8_t dummy_read = 0;
+
+    /* Variable contains soft reset command */
     uint8_t command_reg = BMA4_SOFT_RESET;
 
     /* Check the dev structure as NULL */
@@ -4946,6 +5034,15 @@ int8_t bma4_soft_reset(struct bma4_dev *dev)
     {
         /* Write command register */
         rslt = bma4_write_regs(BMA4_CMD_ADDR, &command_reg, 1, dev);
+
+        if (rslt == BMA4_OK)
+        {
+            if (dev->intf == BMA4_SPI_INTF)
+            {
+                /* Dummy read to bring interface to SPI */
+                rslt = bma4_read_regs(BMA4_CHIP_ID_ADDR, &dummy_read, 1, dev);
+            }
+        }
     }
 
     return rslt;
@@ -4968,9 +5065,6 @@ int8_t bma4_perform_accel_foc(const struct bma4_accel_foc_g_value *accel_g_value
     /* Variable to store status of accelerometer enable */
     uint8_t acc_en = 0;
 
-    /* Variable to get the accel status */
-    uint8_t accel_status = 0;
-
     /* NULL pointer check */
     rslt = null_pointer_check(dev);
 
@@ -4980,28 +5074,10 @@ int8_t bma4_perform_accel_foc(const struct bma4_accel_foc_g_value *accel_g_value
         if (((ABS(accel_g_value->x) + ABS(accel_g_value->y) + ABS(accel_g_value->z)) == 1) &&
             ((accel_g_value->sign == 1) || (accel_g_value->sign == 0)))
         {
-            /* Enable the accelerometer */
-            rslt = bma4_set_accel_enable(BMA4_ENABLE, dev);
-
-            /* Get the accel status */
-            if (rslt == BMA4_OK)
-            {
-                rslt = bma4_get_accel_enable(&accel_status, dev);
-            }
-
-            /* Verify FOC position */
-            if (rslt == BMA4_OK)
-            {
-                rslt = verify_foc_position(accel_status, accel_g_value, dev);
-            }
-
-            if (rslt == BMA4_OK)
-            {
-                /* Save accelerometer configurations, accelerometer
-                 * enable status and advance power save status
-                 */
-                rslt = save_accel_foc_config(&acc_cfg, &aps, &acc_en, dev);
-            }
+            /* Save accelerometer configurations, accelerometer
+             * enable status and advance power save status
+             */
+            rslt = save_accel_foc_config(&acc_cfg, &aps, &acc_en, dev);
 
             /* Set configurations for FOC */
             if (rslt == BMA4_OK)
@@ -5029,251 +5105,6 @@ int8_t bma4_perform_accel_foc(const struct bma4_accel_foc_g_value *accel_g_value
     else
     {
         rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
- * @brief This internal API verifies and allows only the correct position to do Fast Offset Compensation for
- * accelerometer.
- */
-static int8_t verify_foc_position(uint8_t accel_en,
-                                  const struct bma4_accel_foc_g_value *accel_g_axis,
-                                  struct bma4_dev *dev)
-{
-    int8_t rslt;
-    struct bma4_accel avg_foc_data = { 0 };
-    struct bma4_foc_temp_value temp_foc_data = { 0 };
-
-    /* NULL pointer check */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (accel_g_axis != NULL))
-    {
-        rslt = get_average_of_sensor_data(accel_en, &temp_foc_data, dev);
-        if (rslt == BMA4_OK)
-        {
-            /* Taking modulus to make negative values as positive */
-            if ((accel_g_axis->x == 1) && (accel_g_axis->sign == 1))
-            {
-                temp_foc_data.x = temp_foc_data.x * -1;
-            }
-            else if ((accel_g_axis->y == 1) && (accel_g_axis->sign == 1))
-            {
-                temp_foc_data.y = temp_foc_data.y * -1;
-            }
-            else if ((accel_g_axis->z == 1) && (accel_g_axis->sign == 1))
-            {
-                temp_foc_data.z = temp_foc_data.z * -1;
-            }
-
-            /* Typecasting into 16 bit */
-            avg_foc_data.x = (int16_t)(temp_foc_data.x);
-            avg_foc_data.y = (int16_t)(temp_foc_data.y);
-            avg_foc_data.z = (int16_t)(temp_foc_data.z);
-
-            rslt = validate_foc_position(accel_en, accel_g_axis, avg_foc_data, dev);
-        }
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
- * @brief This internal API reads and provides average for 128 samples of sensor data for accel FOC operation.
- */
-static int8_t get_average_of_sensor_data(uint8_t accel_en,
-                                         struct bma4_foc_temp_value *temp_foc_data,
-                                         struct bma4_dev *dev)
-{
-    int8_t rslt;
-    struct bma4_accel sensor_data = { 0 };
-    uint8_t sample_count = 0;
-    uint8_t datardy_try_cnt;
-    uint8_t drdy_status = 0;
-    uint8_t sensor_drdy = 0;
-
-    /* NULL pointer check */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (temp_foc_data != NULL))
-    {
-        if (accel_en == BMA4_ENABLE)
-        {
-            sensor_drdy = BMA4_STAT_DATA_RDY_ACCEL_MSK;
-        }
-
-        /* Read sensor values before FOC */
-        while (sample_count < BMA4_FOC_SAMPLE_LIMIT)
-        {
-            datardy_try_cnt = 5;
-            do
-            {
-                dev->delay_us(BMA4_MS_TO_US(20), dev->intf_ptr);
-                rslt = bma4_get_status(&drdy_status, dev);
-                datardy_try_cnt--;
-            } while ((rslt == BMA4_OK) && (!(drdy_status & sensor_drdy)) && (datardy_try_cnt));
-
-            if ((rslt != BMA4_OK) || (datardy_try_cnt == 0))
-            {
-                rslt = BMA4_E_COM_FAIL;
-                break;
-            }
-
-            rslt = bma4_read_accel_xyz(&sensor_data, dev);
-            if (rslt == BMA4_OK)
-            {
-                temp_foc_data->x += sensor_data.x;
-                temp_foc_data->y += sensor_data.y;
-                temp_foc_data->z += sensor_data.z;
-            }
-            else
-            {
-                return rslt;
-            }
-
-            sample_count++;
-        }
-
-        if (rslt == BMA4_OK)
-        {
-            temp_foc_data->x = (temp_foc_data->x / BMA4_FOC_SAMPLE_LIMIT);
-            temp_foc_data->y = (temp_foc_data->y / BMA4_FOC_SAMPLE_LIMIT);
-            temp_foc_data->z = (temp_foc_data->z / BMA4_FOC_SAMPLE_LIMIT);
-        }
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
- * @brief This internal API validates accel FOC position as per the range
- */
-static int8_t validate_foc_position(uint8_t accel_en,
-                                    const struct bma4_accel_foc_g_value *accel_g_axis,
-                                    struct bma4_accel avg_foc_data,
-                                    struct bma4_dev *dev)
-{
-    int8_t rslt;
-
-    /* NULL pointer check */
-    rslt = null_pointer_check(dev);
-
-    if ((rslt == BMA4_OK) && (accel_g_axis != NULL))
-    {
-        if (accel_en == BMA4_ENABLE)
-        {
-            if (accel_g_axis->x == 1)
-            {
-                rslt = validate_foc_accel_axis(avg_foc_data.x, dev);
-            }
-            else if (accel_g_axis->y == 1)
-            {
-                rslt = validate_foc_accel_axis(avg_foc_data.y, dev);
-            }
-            else
-            {
-                rslt = validate_foc_accel_axis(avg_foc_data.z, dev);
-            }
-        }
-        else
-        {
-            rslt = BMA4_E_COM_FAIL;
-        }
-    }
-    else
-    {
-        rslt = BMA4_E_NULL_PTR;
-    }
-
-    return rslt;
-}
-
-/*!
- * @brief This internal API validates depends on accel FOC access input
- */
-static int8_t validate_foc_accel_axis(int16_t avg_foc_data, struct bma4_dev *dev)
-{
-    struct bma4_accel_config sens_cfg = { 0 };
-    uint8_t range;
-    int8_t rslt;
-    uint16_t range_2g = 0;
-    uint16_t range_4g = 0;
-    uint16_t range_8g = 0;
-    uint16_t range_16g = 0;
-
-    /* NULL pointer check */
-    rslt = null_pointer_check(dev);
-
-    if (rslt == BMA4_OK)
-    {
-        /* Get configurations for accel */
-        rslt = bma4_get_accel_config(&sens_cfg, dev);
-        range = sens_cfg.range;
-
-        /* Calculation. Eg. Range = 2G, Resolution = 12 bit.
-         * Value(i.e range_2g) = 2^(Resolution - 1) / Range
-         *                     = 2^(12-1) / 2 = 1024
-         */
-        if (dev->resolution == BMA4_12_BIT_RESOLUTION)
-        {
-            range_2g = 1024;
-            range_4g = 512;
-            range_8g = 256;
-            range_16g = 128;
-        }
-        else if (dev->resolution == BMA4_14_BIT_RESOLUTION)
-        {
-            range_2g = 4096;
-            range_4g = 2048;
-            range_8g = 1024;
-            range_16g = 512;
-        }
-        else if (dev->resolution == BMA4_16_BIT_RESOLUTION)
-        {
-            range_2g = 16384;
-            range_4g = 8192;
-            range_8g = 4096;
-            range_16g = 2048;
-        }
-
-        /* Reference LSB value of 2G */
-        if ((range == BMA4_ACCEL_RANGE_2G) && (avg_foc_data > BMA4_MIN_NOISE_LIMIT(range_2g)) &&
-            (avg_foc_data < BMA4_MAX_NOISE_LIMIT(range_2g)))
-        {
-            rslt = BMA4_OK;
-        }
-        /* Reference LSB value of 4G */
-        else if ((range == BMA4_ACCEL_RANGE_4G) && (avg_foc_data > BMA4_MIN_NOISE_LIMIT(range_4g)) &&
-                 (avg_foc_data < BMA4_MAX_NOISE_LIMIT(range_4g)))
-        {
-            rslt = BMA4_OK;
-        }
-        /* Reference LSB value of 8G */
-        else if ((range == BMA4_ACCEL_RANGE_8G) && (avg_foc_data > BMA4_MIN_NOISE_LIMIT(range_8g)) &&
-                 (avg_foc_data < BMA4_MAX_NOISE_LIMIT(range_8g)))
-        {
-            rslt = BMA4_OK;
-        }
-        /* Reference LSB value of 16G */
-        else if ((range == BMA4_ACCEL_RANGE_16G) && (avg_foc_data > BMA4_MIN_NOISE_LIMIT(range_16g)) &&
-                 (avg_foc_data < BMA4_MAX_NOISE_LIMIT(range_16g)))
-        {
-            rslt = BMA4_OK;
-        }
-        else
-        {
-            rslt = BMA4_E_FOC_FAIL;
-        }
     }
 
     return rslt;
@@ -5450,7 +5281,7 @@ static int8_t perform_accel_foc(const struct bma4_accel_foc_g_value *accel_g_val
             {
                 /* 20ms delay for 50Hz ODR */
                 dev->delay_us(BMA4_MS_TO_US(20), dev->intf_ptr);
-                rslt = bma4_get_status(&reg_status, dev);
+                rslt = bma4_read_regs(BMA4_STATUS_ADDR, &reg_status, 1, dev);
                 try_cnt--;
             }
 
@@ -5495,7 +5326,7 @@ static int8_t perform_accel_foc(const struct bma4_accel_foc_g_value *accel_g_val
             comp_for_gravity(lsb_per_g, accel_g_value, &accel_avg, &delta);
 
             /* Scale according to offset register resolution */
-            scale_bma4_accel_offset(range, &delta, &offset);
+            scale_bma4_accel_offset(range, &delta, &offset, dev->resolution);
 
             /* Invert the accelerometer offset data */
             invert_bma4_accel_offset(&offset);
@@ -5574,23 +5405,32 @@ static void comp_for_gravity(uint16_t lsb_per_g,
  */
 static void scale_bma4_accel_offset(uint8_t range,
                                     const struct bma4_offset_delta *comp_data,
-                                    struct bma4_accel_offset *data)
+                                    struct bma4_accel_offset *data,
+                                    uint8_t resolution)
 {
     /* Variable to store the position of bit having 3.9mg resolution */
     int8_t bit_pos_3_9mg;
 
     /* Variable to store the position previous of bit having 3.9mg resolution */
-    int8_t bit_pos_3_9mg_prev_bit;
+    int8_t bit_pos_3_9mg_prev_bit = 0;
 
     /* Variable to store the round-off value */
-    uint8_t round_off;
+    uint8_t round_off = 0;
 
     /* Find the bit position of 3.9mg */
-    bit_pos_3_9mg = get_bit_pos_3_9mg(range);
+    bit_pos_3_9mg = get_bit_pos_3_9mg(range, resolution);
+
+    if (bit_pos_3_9mg < 0)
+    {
+        bit_pos_3_9mg = 0;
+    }
 
     /* Round off, consider if the next bit is high */
-    bit_pos_3_9mg_prev_bit = bit_pos_3_9mg - 1;
-    round_off = (uint8_t)(power(2, ((uint8_t) bit_pos_3_9mg_prev_bit)));
+    if (bit_pos_3_9mg > 0)
+    {
+        bit_pos_3_9mg_prev_bit = bit_pos_3_9mg - 1;
+        round_off = (uint8_t)(power(2, ((uint8_t) bit_pos_3_9mg_prev_bit)));
+    }
 
     /* Scale according to offset register resolution */
     data->x = (uint8_t)((comp_data->x + round_off) / power(2, ((uint8_t) bit_pos_3_9mg)));
@@ -5641,7 +5481,7 @@ static int8_t write_bma4_accel_offset(const struct bma4_accel_offset *offset, st
  * @brief This internal API finds the bit position of 3.9mg according to given
  * range and resolution.
  */
-static int8_t get_bit_pos_3_9mg(uint8_t range)
+static int8_t get_bit_pos_3_9mg(uint8_t range, uint8_t resolution)
 {
     /* Variable to store the bit position of 3.9mg resolution */
     int8_t bit_pos_3_9mg;
@@ -5656,10 +5496,10 @@ static int8_t get_bit_pos_3_9mg(uint8_t range)
     uint16_t temp;
 
     /* Shift left by the times of resolution */
-    divisor = divisor << 16;
+    divisor = divisor << (resolution - 1);
 
     /* Get the bit position to be shifted */
-    temp = (uint16_t)(divisor / (range * 256));
+    temp = (uint16_t)(divisor / (range * 128));
 
     /* Get the scaling factor until bit position is shifted to last bit */
     while (temp != 1)
@@ -5716,6 +5556,303 @@ static int8_t restore_accel_foc_config(const struct bma4_accel_config *acc_cfg,
     else
     {
         rslt = BMA4_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
+/*!
+ * @brief This internal API is to store remapped axis and sign values
+ * in device structure
+ */
+static void assign_remap_axis(uint8_t remap_axis, uint8_t *axis, uint8_t *sign)
+{
+    /* Variable to store the re-mapped axis value */
+    uint8_t axis_val = remap_axis & BMA4_AXIS_MASK;
+
+    switch (axis_val)
+    {
+        case BMA4_X:
+
+            /* If mapped to x-axis */
+            (*axis) = BMA4_MAP_X_AXIS;
+            break;
+        case BMA4_Y:
+
+            /* If mapped to y-axis */
+            (*axis) = BMA4_MAP_Y_AXIS;
+            break;
+        case BMA4_Z:
+
+            /* If mapped to z-axis */
+            (*axis) = BMA4_MAP_Z_AXIS;
+            break;
+        default:
+            break;
+    }
+
+    /* Store the re-mapped axis sign in the device structure */
+    if (remap_axis & BMA4_AXIS_SIGN)
+    {
+        /* If axis mapped to negative sign */
+        (*sign) = BMA4_MAP_NEGATIVE;
+    }
+    else
+    {
+        /* If axis mapped to positive sign */
+        (*sign) = BMA4_MAP_POSITIVE;
+    }
+}
+
+/*!
+ * @brief This internal API is to receive remapped axis and sign values
+ * in device structure and to local structure
+ */
+static void receive_remap_axis(uint8_t remap_axis, uint8_t remap_sign, uint8_t *axis)
+{
+    /* Get the re-mapped axis value from device structure */
+    switch (remap_axis)
+    {
+        case BMA4_MAP_X_AXIS:
+
+            /* If mapped to x-axis */
+            (*axis) = BMA4_X;
+            break;
+        case BMA4_MAP_Y_AXIS:
+
+            /* If mapped to y-axis */
+            (*axis) = BMA4_Y;
+            break;
+        case BMA4_MAP_Z_AXIS:
+
+            /* If mapped to z-axis */
+            (*axis) = BMA4_Z;
+            break;
+        default:
+            break;
+    }
+
+    /* Get the re-mapped axis sign from device structure */
+    if (remap_sign)
+    {
+        /* If axis is mapped to negative sign */
+        (*axis) |= BMA4_AXIS_SIGN;
+    }
+}
+
+/*!
+ * @brief This API performs x, y and z-axis re-mapping in the sensor.
+ */
+static int8_t set_remap_axes(const struct bma4_axes_remap *remap_data,
+                             uint8_t *feature_config,
+                             uint8_t index,
+                             uint8_t feature_len,
+                             struct bma4_dev *dev)
+{
+    /* Variable to hold execution status */
+    int8_t rslt;
+
+    /* Variable to define x-axis to be re-mapped */
+    uint8_t x_axis;
+
+    /* Variable to define y-axis to be re-mapped */
+    uint8_t y_axis;
+
+    /* Variable to define z-axis to be re-mapped */
+    uint8_t z_axis;
+
+    /* Variable to define x-axis sign to be re-mapped */
+    uint8_t x_axis_sign;
+
+    /* Variable to define y-axis sign to be re-mapped */
+    uint8_t y_axis_sign;
+
+    /* Variable to define z-axis sign to be re-mapped */
+    uint8_t z_axis_sign;
+
+    if (remap_data != NULL)
+    {
+        /* Read the configuration file */
+        rslt = bma4_read_regs(BMA4_FEATURE_CONFIG_ADDR, feature_config, feature_len, dev);
+
+        if (rslt == BMA4_OK)
+        {
+            /* Get x-axis to be re-mapped */
+            x_axis = remap_data->x_axis & BMA4_X_AXIS_MSK;
+
+            /* Get x-axis sign to be re-mapped */
+            x_axis_sign = (remap_data->x_axis_sign << BMA4_X_AXIS_SIGN_POS) & BMA4_X_AXIS_SIGN_MSK;
+
+            /* Get y-axis to be re-mapped */
+            y_axis = (remap_data->y_axis << BMA4_Y_AXIS_POS) & BMA4_Y_AXIS_MSK;
+
+            /* Get y-axis sign to be re-mapped */
+            y_axis_sign = (remap_data->y_axis_sign << BMA4_Y_AXIS_SIGN_POS) & BMA4_Y_AXIS_SIGN_MSK;
+
+            /* Get z-axis to be re-mapped */
+            z_axis = (remap_data->z_axis << BMA4_Z_AXIS_POS) & BMA4_Z_AXIS_MSK;
+
+            /* Get z-axis sign to be re-mapped */
+            z_axis_sign = remap_data->z_axis_sign & BMA4_Z_AXIS_SIGN_MSK;
+
+            /* Set the first byte for axis re-mapping */
+            feature_config[index] = x_axis | x_axis_sign | y_axis | y_axis_sign | z_axis;
+
+            /* Set the second byte for axis re-mapping */
+            feature_config[index + 1] = z_axis_sign;
+
+            /* Set the re-mapped axes */
+            rslt = bma4_write_regs(BMA4_FEATURE_CONFIG_ADDR, feature_config, feature_len, dev);
+        }
+    }
+    else
+    {
+        rslt = BMA4_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
+/*!
+ * @brief This API reads the x, y and z axis re-mapped data from the sensor.
+ */
+static int8_t get_remap_axes(struct bma4_axes_remap *remap_data,
+                             uint8_t *feature_config,
+                             uint8_t index,
+                             uint8_t feature_len,
+                             struct bma4_dev *dev)
+{
+    /* Variable to hold execution status */
+    int8_t rslt;
+
+    if (remap_data != NULL)
+    {
+        /* Read the configuration file */
+        rslt = bma4_read_regs(BMA4_FEATURE_CONFIG_ADDR, feature_config, feature_len, dev);
+
+        if (rslt == BMA4_OK)
+        {
+            /* Get re-mapped x-axis */
+            remap_data->x_axis = BMA4_GET_BITS_POS_0(feature_config[index], BMA4_X_AXIS);
+
+            /* Get re-mapped x-axis sign */
+            remap_data->x_axis_sign = BMA4_GET_BITSLICE(feature_config[index], BMA4_X_AXIS_SIGN);
+
+            /* Get re-mapped y-axis */
+            remap_data->y_axis = BMA4_GET_BITSLICE(feature_config[index], BMA4_Y_AXIS);
+
+            /* Get re-mapped y-axis sign */
+            remap_data->y_axis_sign = BMA4_GET_BITSLICE(feature_config[index], BMA4_Y_AXIS_SIGN);
+
+            /* Get re-mapped z-axis */
+            remap_data->z_axis = BMA4_GET_BITSLICE(feature_config[index], BMA4_Z_AXIS);
+
+            /* Get re-mapped z-axis sign */
+            remap_data->z_axis_sign = BMA4_GET_BITS_POS_0(feature_config[index + 1], BMA4_Z_AXIS_SIGN);
+        }
+    }
+    else
+    {
+        rslt = BMA4_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
+/*!
+ * @brief This internal API gets the re-mapped accelerometer/gyroscope data.
+ */
+static void get_remapped_data(struct bma4_accel *data, const struct bma4_dev *dev)
+{
+    /* Array to defined the re-mapped sensor data */
+    int16_t remap_data[3] = { 0 };
+    int16_t pos_multiplier = INT16_C(1);
+    int16_t neg_multiplier = INT16_C(-1);
+
+    /* Fill the array with the un-mapped sensor data */
+    remap_data[0] = data->x;
+    remap_data[1] = data->y;
+    remap_data[2] = data->z;
+
+    /* Get the re-mapped x axis data */
+    if (dev->remap.x_axis_sign == BMA4_MAP_POSITIVE)
+    {
+        data->x = (int16_t)(remap_data[dev->remap.x_axis] * pos_multiplier);
+    }
+    else
+    {
+        data->x = (int16_t)(remap_data[dev->remap.x_axis] * neg_multiplier);
+    }
+
+    /* Get the re-mapped y axis data */
+    if (dev->remap.y_axis_sign == BMA4_MAP_POSITIVE)
+    {
+        data->y = (int16_t)(remap_data[dev->remap.y_axis] * pos_multiplier);
+    }
+    else
+    {
+        data->y = (int16_t)(remap_data[dev->remap.y_axis] * neg_multiplier);
+    }
+
+    /* Get the re-mapped z axis data */
+    if (dev->remap.z_axis_sign == BMA4_MAP_POSITIVE)
+    {
+        data->z = (int16_t)(remap_data[dev->remap.z_axis] * pos_multiplier);
+    }
+    else
+    {
+        data->z = (int16_t)(remap_data[dev->remap.z_axis] * neg_multiplier);
+    }
+}
+
+/*!
+ *  @brief This API performs the steps needed for self-test operation
+ *  before reading the Accel self-test data.
+ */
+static int8_t selftest_config(uint8_t sign, struct bma4_dev *dev)
+{
+    int8_t rslt;
+
+    /* NULL pointer check */
+    rslt = null_pointer_check(dev);
+
+    if (rslt == BMA4_OK)
+    {
+        rslt = set_accel_selftest_enable(BMA4_ENABLE, dev);
+
+        if (rslt == BMA4_OK)
+        {
+            rslt = set_accel_selftest_sign(sign, dev);
+
+            if (rslt == BMA4_OK)
+            {
+                /* Set self-test amplitude based on variant */
+                switch (dev->variant)
+                {
+                    case BMA42X_VARIANT:
+
+                        /* Set self-test amplitude to high for BMA42x */
+                        rslt = set_accel_selftest_amp(BMA4_ENABLE, dev);
+                        break;
+
+                    case BMA42X_B_VARIANT:
+
+                        /* Set self-test amplitude to low for BMA42x_B */
+                        rslt = set_accel_selftest_amp(BMA4_DISABLE, dev);
+                        break;
+
+                    case BMA45X_VARIANT:
+
+                        /* Set self-test amplitude to low for BMA45x */
+                        rslt = set_accel_selftest_amp(BMA4_DISABLE, dev);
+                        break;
+
+                    default:
+                        rslt = BMA4_E_INVALID_SENSOR;
+                        break;
+                }
+            }
+        }
     }
 
     return rslt;

@@ -1,40 +1,40 @@
 /**
- * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
- *
- * BSD-3-Clause
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @file       bma456.c
- * @date       2020-04-09
- * @version    V2.14.12
- *
- */
+* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+*
+* BSD-3-Clause
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*
+* @file       bma456.c
+* @date       2021-08-06
+* @version    V2.20.4
+*
+*/
 
 /*! \file bma456.c
  * \brief Sensor Driver for BMA456 sensor
@@ -447,16 +447,28 @@ int8_t bma456_init(struct bma4_dev *dev)
 {
     int8_t rslt;
 
+    /* Structure to define the default values for axes re-mapping */
+    struct bma4_axes_remap axes_remap = {
+        .x_axis = BMA4_MAP_X_AXIS, .x_axis_sign = BMA4_MAP_POSITIVE, .y_axis = BMA4_MAP_Y_AXIS,
+        .y_axis_sign = BMA4_MAP_POSITIVE, .z_axis = BMA4_MAP_Z_AXIS, .z_axis_sign = BMA4_MAP_POSITIVE
+    };
+
     rslt = bma4_init(dev);
     if (rslt == BMA4_OK)
     {
         if (dev->chip_id == BMA456_CHIP_ID)
         {
             /* Resolution of BMA456 sensor is 16 bit */
-            dev->resolution = 16;
+            dev->resolution = BMA4_16_BIT_RESOLUTION;
+
             dev->feature_len = BMA456_FEATURE_SIZE;
-            dev->variant = BMA45X_VARIANT;
+
             dev->config_size = sizeof(bma456_config_file);
+
+            /* Set the default values for axis
+             *  re-mapping in the device structure
+             */
+            dev->remap = axes_remap;
         }
         else
         {
@@ -502,6 +514,65 @@ int8_t bma456_write_config_file(struct bma4_dev *dev)
         else
         {
             rslt = BMA4_E_INVALID_SENSOR;
+        }
+    }
+    else
+    {
+        rslt = BMA4_E_NULL_PTR;
+    }
+
+    return rslt;
+}
+
+/*!
+ * @brief This API is used to get the config file major and minor information.
+ */
+int8_t bma456_get_version_config(uint16_t *config_major, uint16_t *config_minor, struct bma4_dev *dev)
+{
+    /* Initialize configuration file */
+    uint8_t feature_config[BMA456_FEATURE_SIZE] = { 0 };
+
+    /* Update index to config file version */
+    uint8_t index = BMA456_CONFIG_ID_OFFSET;
+
+    /* Variable to define LSB */
+    uint8_t lsb = 0;
+
+    /* Variable to define MSB */
+    uint8_t msb = 0;
+
+    /* Variable to define LSB and MSB */
+    uint16_t lsb_msb = 0;
+
+    /* Result of api are returned to this variable */
+    int8_t rslt = BMA4_OK;
+
+    if ((config_major != NULL) && (config_minor != NULL))
+    {
+        rslt = bma4_set_advance_power_save(BMA4_DISABLE, dev);
+
+        if (rslt == BMA4_OK)
+        {
+            /* Wait for sensor time synchronization. Refer the data-sheet for
+             * more information
+             */
+            dev->delay_us(450, dev->intf_ptr);
+
+            /* Get config file identification from the sensor */
+            rslt = bma4_read_regs(BMA4_FEATURE_CONFIG_ADDR, feature_config, BMA456_FEATURE_SIZE, dev);
+
+            if (rslt == BMA4_OK)
+            {
+                /* Get word to calculate config file identification */
+                lsb = feature_config[index++];
+                msb = feature_config[index++];
+
+                lsb_msb = (uint16_t)(msb << 8 | lsb);
+
+                /* Get major and minor version */
+                *config_major = BMA4_GET_BITSLICE(lsb_msb, BMA4_CONFIG_MAJOR);
+                *config_minor = BMA4_GET_BITS_POS_0(lsb, BMA4_CONFIG_MINOR);
+            }
         }
     }
     else
@@ -655,38 +726,15 @@ int8_t bma456_feature_enable(uint8_t feature, uint8_t enable, struct bma4_dev *d
 /*!
  * @brief This API performs x, y and z axis remapping in the sensor.
  */
-int8_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct bma4_dev *dev)
+int8_t bma456_set_remap_axes(const struct bma4_remap *remap_axes, struct bma4_dev *dev)
 {
     uint8_t feature_config[BMA456_FEATURE_SIZE] = { 0 };
     uint8_t index = BMA456_AXES_REMAP_OFFSET;
     int8_t rslt = BMA4_OK;
-    uint8_t x_axis = 0;
-    uint8_t x_axis_sign = 0;
-    uint8_t y_axis = 0;
-    uint8_t y_axis_sign = 0;
-    uint8_t z_axis = 0;
 
-    if ((dev != NULL) && (remap_data != NULL))
+    if (remap_axes != NULL)
     {
-        if (dev->chip_id == BMA456_CHIP_ID)
-        {
-            rslt = bma4_read_regs(BMA4_FEATURE_CONFIG_ADDR, feature_config, BMA456_FEATURE_SIZE, dev);
-            if (rslt == BMA4_OK)
-            {
-                x_axis = remap_data->x_axis & BMA456_X_AXIS_MASK;
-                x_axis_sign = (remap_data->x_axis_sign << 2) & BMA456_X_AXIS_SIGN_MASK;
-                y_axis = (remap_data->y_axis << 3) & BMA456_Y_AXIS_MASK;
-                y_axis_sign = (remap_data->y_axis_sign << 5) & BMA456_Y_AXIS_SIGN_MASK;
-                z_axis = (remap_data->z_axis << 6) & BMA456_Z_AXIS_MASK;
-                feature_config[index] = x_axis | x_axis_sign | y_axis | y_axis_sign | z_axis;
-                feature_config[index + 1] = remap_data->z_axis_sign & BMA456_Z_AXIS_SIGN_MASK;
-                rslt = bma4_write_regs(BMA4_FEATURE_CONFIG_ADDR, feature_config, BMA456_FEATURE_SIZE, dev);
-            }
-        }
-        else
-        {
-            rslt = BMA4_E_INVALID_SENSOR;
-        }
+        rslt = bma4_set_remap_axes(remap_axes, feature_config, index, BMA456_FEATURE_SIZE, dev);
     }
     else
     {
@@ -699,31 +747,15 @@ int8_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct 
 /*!
  * @brief This API reads the x, y and z axis remap data from the sensor.
  */
-int8_t bma456_get_remap_axes(struct bma456_axes_remap *remap_data, struct bma4_dev *dev)
+int8_t bma456_get_remap_axes(struct bma4_remap *remap_axes, struct bma4_dev *dev)
 {
     uint8_t feature_config[BMA456_FEATURE_SIZE] = { 0 };
     uint8_t index = BMA456_AXES_REMAP_OFFSET;
     int8_t rslt = BMA4_OK;
 
-    if ((dev != NULL) && (remap_data != NULL))
+    if (remap_axes != NULL)
     {
-        if (dev->chip_id == BMA456_CHIP_ID)
-        {
-            rslt = bma4_read_regs(BMA4_FEATURE_CONFIG_ADDR, feature_config, BMA456_FEATURE_SIZE, dev);
-            if (rslt == BMA4_OK)
-            {
-                remap_data->x_axis = feature_config[index] & BMA456_X_AXIS_MASK;
-                remap_data->x_axis_sign = (feature_config[index] & BMA456_X_AXIS_SIGN_MASK) >> 2;
-                remap_data->y_axis = (feature_config[index] & BMA456_Y_AXIS_MASK) >> 3;
-                remap_data->y_axis_sign = (feature_config[index] & BMA456_Y_AXIS_SIGN_MASK) >> 5;
-                remap_data->z_axis = (feature_config[index] & BMA456_Z_AXIS_MASK) >> 6;
-                remap_data->z_axis_sign = (feature_config[index + 1] & BMA456_Z_AXIS_SIGN_MASK);
-            }
-        }
-        else
-        {
-            rslt = BMA4_E_INVALID_SENSOR;
-        }
+        rslt = bma4_get_remap_axes(remap_axes, feature_config, index, BMA456_FEATURE_SIZE, dev);
     }
     else
     {

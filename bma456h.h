@@ -1,40 +1,40 @@
 /**
- * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
- *
- * BSD-3-Clause
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @file       bma456h.h
- * @date       2020-04-09
- * @version    V2.14.12
- *
- */
+* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+*
+* BSD-3-Clause
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*
+* @file       bma456h.h
+* @date       2021-08-06
+* @version    V2.20.4
+*
+*/
 
 /**
  * \ingroup bma4xy
@@ -51,155 +51,153 @@ extern "C" {
 #include "bma4.h"
 
 /**\name Chip ID of BMA456H sensor */
-#define BMA456H_CHIP_ID                       UINT8_C(0x16)
+#define BMA456H_CHIP_ID                           UINT8_C(0x16)
+
+/**\ Configuration ID start position of BMA456H sensor */
+#define BMA456H_CONFIG_ID_START_ADDR              UINT8_C(90)
 
 /**\name Sensor feature size */
-#define BMA456H_FEATURE_SIZE                  UINT8_C(110)
-#define BMA456H_FEATURE_SIZE_WORDS            UINT8_C(54)
-#define BMA456H_ANY_MOT_LEN                   UINT8_C(4)
+#define BMA456H_FEATURE_SIZE                      UINT8_C(94)
+#define BMA456H_FEATURE_SIZE_WORDS                UINT8_C(46)
+#define BMA456H_ANY_MOT_LEN                       UINT8_C(4)
 
 /**************************************************************/
 /**\name    Feature input offset: Features enable position    */
 /**************************************************************/
-#define BMA456H_ANY_MOT_OFFSET                UINT8_C(0x00)
-#define BMA456H_NO_MOT_OFFSET                 UINT8_C(0x04)
-#define BMA456H_STEP_CNTR_PARAM_OFFSET        UINT8_C(0x08)
-#define BMA456H_STEP_CNTR_OFFSET              UINT8_C(0x3A)
-#define BMA456H_TAP_PARAM_OFFSET              UINT8_C(0x3C)
-#define BMA456H_IN_EAR_DETECTION_PARAM_OFFSET UINT8_C(0x54)
-#define BMA456H_AUTO_LOW_POWER_OFFSET         UINT8_C(0x68)
-#define BMA456H_AUTO_LOW_POWER_OFFSET_WORDS   UINT8_C(0x34)
+#define BMA456H_ANY_MOT_OFFSET                    UINT8_C(0x00)
+#define BMA456H_NO_MOT_OFFSET                     UINT8_C(0x04)
+#define BMA456H_STEP_CNTR_PARAM_OFFSET            UINT8_C(0x08)
+#define BMA456H_STEP_CNTR_OFFSET                  UINT8_C(0x3A)
+#define BMA456H_TAP_PARAM_OFFSET                  UINT8_C(0x3C)
+#define BMA456H_AUTO_LOW_POWER_OFFSET             UINT8_C(0x58)
+#define BMA456H_AUTO_LOW_POWER_OFFSET_WORDS       UINT8_C(0x2C)
 
 /**\name Read/Write Lengths */
-#define BMA456H_RD_WR_MIN_LEN                 UINT8_C(2)
-#define BMA456H_NO_MOT_RD_WR_LEN              (BMA456H_ANY_MOT_LEN + BMA456H_NO_MOT_OFFSET)
+#define BMA456H_RD_WR_MIN_LEN                     UINT8_C(2)
+#define BMA456H_NO_MOT_RD_WR_LEN                  (BMA456H_ANY_MOT_LEN + BMA456H_NO_MOT_OFFSET)
 
 /**************************************************************/
 /**\name    General settings: Re-map Axes */
 /**************************************************************/
-#define BMA456H_CONFIG_ID_OFFSET              UINT8_C(0x6A)
-#define BMA456H_AXES_REMAP_OFFSET             UINT8_C(0x6C)
-#define BMA456H_X_AXIS_MASK                   UINT8_C(0x03)
-#define BMA456H_X_AXIS_SIGN_MASK              UINT8_C(0x04)
-#define BMA456H_Y_AXIS_MASK                   UINT8_C(0x18)
-#define BMA456H_Y_AXIS_SIGN_MASK              UINT8_C(0x20)
-#define BMA456H_Z_AXIS_MASK                   UINT8_C(0xC0)
-#define BMA456H_Z_AXIS_SIGN_MASK              UINT8_C(0x01)
+#define BMA456H_CONFIG_ID_OFFSET                  UINT8_C(0x5A)
+#define BMA456H_AXES_REMAP_OFFSET                 UINT8_C(0x5C)
+#define BMA456H_X_AXIS_MASK                       UINT8_C(0x03)
+#define BMA456H_X_AXIS_SIGN_MASK                  UINT8_C(0x04)
+#define BMA456H_Y_AXIS_MASK                       UINT8_C(0x18)
+#define BMA456H_Y_AXIS_SIGN_MASK                  UINT8_C(0x20)
+#define BMA456H_Z_AXIS_MASK                       UINT8_C(0xC0)
+#define BMA456H_Z_AXIS_SIGN_MASK                  UINT8_C(0x01)
 
 /**************************************************************/
 /**\name    Output: Features enable position */
 /**************************************************************/
-#define BMA456H_NO_MOT_X_EN_POS               UINT8_C(0)
-#define BMA456H_NO_MOT_Y_EN_POS               UINT8_C(1)
-#define BMA456H_NO_MOT_Z_EN_POS               UINT8_C(2)
-#define BMA456H_ANY_MOT_X_EN_POS              UINT8_C(3)
-#define BMA456H_ANY_MOT_Y_EN_POS              UINT8_C(4)
-#define BMA456H_ANY_MOT_Z_EN_POS              UINT8_C(5)
-#define BMA456H_IN_EAR_DET_EN_POS             UINT8_C(6)
+#define BMA456H_NO_MOT_X_EN_POS                   UINT8_C(0)
+#define BMA456H_NO_MOT_Y_EN_POS                   UINT8_C(1)
+#define BMA456H_NO_MOT_Z_EN_POS                   UINT8_C(2)
+#define BMA456H_ANY_MOT_X_EN_POS                  UINT8_C(3)
+#define BMA456H_ANY_MOT_Y_EN_POS                  UINT8_C(4)
+#define BMA456H_ANY_MOT_Z_EN_POS                  UINT8_C(5)
 
-#define BMA456H_STEP_DETR_EN_POS              UINT8_C(0)
-#define BMA456H_STEP_CNTR_EN_POS              UINT8_C(1)
-#define BMA456H_STEP_ACT_EN_POS               UINT8_C(2)
-#define BMA456H_AUTO_LOW_POWER_EN_POS         UINT8_C(3)
-#define BMA456H_SIN_TAP_EN_POS                UINT8_C(4)
-#define BMA456H_DBL_TAP_EN_POS                UINT8_C(5)
-#define BMA456H_TPL_TAP_EN_POS                UINT8_C(6)
+#define BMA456H_STEP_DETR_EN_POS                  UINT8_C(0)
+#define BMA456H_STEP_CNTR_EN_POS                  UINT8_C(1)
+#define BMA456H_STEP_ACT_EN_POS                   UINT8_C(2)
+#define BMA456H_AUTO_LOW_POWER_EN_POS             UINT8_C(3)
+#define BMA456H_SIN_TAP_EN_POS                    UINT8_C(4)
+#define BMA456H_DBL_TAP_EN_POS                    UINT8_C(5)
+#define BMA456H_TPL_TAP_EN_POS                    UINT8_C(6)
+#define BMA456H_TAP_AVERAGE_EN_POS                UINT8_C(7)
 
 /**************************************************************/
 /**\name    Output: Features enable mask */
 /**************************************************************/
-#define BMA456H_NO_MOT_X_EN_MSK               UINT8_C(0x01)
-#define BMA456H_NO_MOT_Y_EN_MSK               UINT8_C(0x02)
-#define BMA456H_NO_MOT_Z_EN_MSK               UINT8_C(0x04)
-#define BMA456H_NO_MOT_ALL_EN_MSK             UINT8_C(0x07)
-#define BMA456H_NO_MOT_ALL_DIS_MSK            UINT8_C(0x00)
-#define BMA456H_ANY_MOT_X_EN_MSK              UINT8_C(0x08)
-#define BMA456H_ANY_MOT_Y_EN_MSK              UINT8_C(0x10)
-#define BMA456H_ANY_MOT_Z_EN_MSK              UINT8_C(0x20)
-#define BMA456H_ANY_MOT_ALL_EN_MSK            UINT8_C(0x38)
-#define BMA456H_ANY_MOT_ALL_DIS_MSK           UINT8_C(0x00)
-#define BMA456H_IN_EAR_DET_EN_MSK             UINT8_C(0x40)
+#define BMA456H_NO_MOT_X_EN_MSK                   UINT8_C(0x01)
+#define BMA456H_NO_MOT_Y_EN_MSK                   UINT8_C(0x02)
+#define BMA456H_NO_MOT_Z_EN_MSK                   UINT8_C(0x04)
+#define BMA456H_NO_MOT_ALL_EN_MSK                 UINT8_C(0x07)
+#define BMA456H_NO_MOT_ALL_DIS_MSK                UINT8_C(0x00)
+#define BMA456H_ANY_MOT_X_EN_MSK                  UINT8_C(0x08)
+#define BMA456H_ANY_MOT_Y_EN_MSK                  UINT8_C(0x10)
+#define BMA456H_ANY_MOT_Z_EN_MSK                  UINT8_C(0x20)
+#define BMA456H_ANY_MOT_ALL_EN_MSK                UINT8_C(0x38)
+#define BMA456H_ANY_MOT_ALL_DIS_MSK               UINT8_C(0x00)
 
-#define BMA456H_STEP_DETR_EN_MSK              UINT8_C(0x01)
-#define BMA456H_STEP_CNTR_EN_MSK              UINT8_C(0x02)
-#define BMA456H_STEP_ACT_EN_MSK               UINT8_C(0x04)
-#define BMA456H_AUTO_LOW_POWER_EN_MSK         UINT8_C(0x08)
-#define BMA456H_SINGLE_TAP_EN_MSK             UINT8_C(0x10)
-#define BMA456H_DOUBLE_TAP_EN_MSK             UINT8_C(0x20)
-#define BMA456H_TRIPLE_TAP_EN_MSK             UINT8_C(0x40)
+#define BMA456H_STEP_DETR_EN_MSK                  UINT8_C(0x01)
+#define BMA456H_STEP_CNTR_EN_MSK                  UINT8_C(0x02)
+#define BMA456H_STEP_ACT_EN_MSK                   UINT8_C(0x04)
+#define BMA456H_AUTO_LOW_POWER_EN_MSK             UINT8_C(0x08)
+#define BMA456H_SINGLE_TAP_EN_MSK                 UINT8_C(0x10)
+#define BMA456H_DOUBLE_TAP_EN_MSK                 UINT8_C(0x20)
+#define BMA456H_TRIPLE_TAP_EN_MSK                 UINT8_C(0x40)
+#define BMA456H_TAP_AVERAGE_EN_MSK                UINT8_C(0x80)
 
 /**\name Step counter water-mark macros */
-#define BMA456H_STEP_CNTR_WM_MSK              UINT16_C(0x03FF)
+#define BMA456H_STEP_CNTR_WM_MSK                  UINT16_C(0x03FF)
 
 /**\name Step counter reset macros */
-#define BMA456H_STEP_CNTR_RST_POS             UINT8_C(2)
-#define BMA456H_STEP_CNTR_RST_MSK             UINT8_C(0x04)
+#define BMA456H_STEP_CNTR_RST_POS                 UINT8_C(2)
+#define BMA456H_STEP_CNTR_RST_MSK                 UINT8_C(0x04)
 
 /**\name Step counter output length */
-#define BMA456H_STEP_CNTR_DATA_SIZE           UINT16_C(4)
+#define BMA456H_STEP_CNTR_DATA_SIZE               UINT16_C(4)
 
 /**\name Step activity output macros */
-#define BMA456H_ACTIVITY_OUT_MSK              UINT8_C(0x03)
-#define BMA456H_ACTIVITY_OUT_POS              UINT8_C(0x00)
+#define BMA456H_ACTIVITY_OUT_MSK                  UINT8_C(0x03)
+#define BMA456H_ACTIVITY_OUT_POS                  UINT8_C(0x00)
 
 /**\name Tap output macros */
-#define BMA456H_SINGLE_TAP_OUT_MSK            UINT8_C(0x04)
-#define BMA456H_SINGLE_TAP_OUT_POS            UINT8_C(0x02)
+#define BMA456H_SINGLE_TAP_OUT_MSK                UINT8_C(0x04)
+#define BMA456H_SINGLE_TAP_OUT_POS                UINT8_C(0x02)
 
-#define BMA456H_DOUBLE_TAP_OUT_MSK            UINT8_C(0x08)
-#define BMA456H_DOUBLE_TAP_OUT_POS            UINT8_C(0x03)
+#define BMA456H_DOUBLE_TAP_OUT_MSK                UINT8_C(0x08)
+#define BMA456H_DOUBLE_TAP_OUT_POS                UINT8_C(0x03)
 
-#define BMA456H_TRIPLE_TAP_OUT_MSK            UINT8_C(0x10)
-#define BMA456H_TRIPLE_TAP_OUT_POS            UINT8_C(0x04)
+#define BMA456H_TRIPLE_TAP_OUT_MSK                UINT8_C(0x10)
+#define BMA456H_TRIPLE_TAP_OUT_POS                UINT8_C(0x04)
 
-/**\name In-ear detection output macros */
-#define BMA456H_EAR_DETECTION_OUT_MSK         UINT8_C(0xE0)
-#define BMA456H_EAR_DETECTION_OUT_POS         UINT8_C(0x05)
-
-#define BMA456H_TAP_OUT_MSK                   UINT8_C(0x1C)
-#define BMA456H_TAP_OUT_POS                   UINT8_C(0x02)
+#define BMA456H_TAP_OUT_MSK                       UINT8_C(0x1C)
+#define BMA456H_TAP_OUT_POS                       UINT8_C(0x02)
 
 /**************************************************************/
 /**\name    Any/no Motion */
 /**************************************************************/
 /**\name Any/No motion threshold macros */
-#define BMA456H_ANY_NO_MOT_THRES_MSK             UINT16_C(0x07FF)
+#define BMA456H_ANY_NO_MOT_THRES_MSK              UINT16_C(0x07FF)
 
 /**\name Any/No motion duration macros */
-#define BMA456H_ANY_NO_MOT_DUR_MSK               UINT16_C(0x1FFF)
+#define BMA456H_ANY_NO_MOT_DUR_MSK                UINT16_C(0x1FFF)
 
 /**\name Any/No motion enable macros */
-#define BMA456H_ANY_NO_MOT_AXIS_EN_POS           UINT8_C(0x03)
-#define BMA456H_ANY_NO_MOT_AXIS_EN_MSK           UINT16_C(0x78)
+#define BMA456H_ANY_NO_MOT_AXIS_EN_POS            UINT8_C(0x03)
+#define BMA456H_ANY_NO_MOT_AXIS_EN_MSK            UINT16_C(0x78)
 
-#define BMA456H_NO_MOT_AUTO_LOW_POWER_MSK        UINT8_C(0x01)
+#define BMA456H_NO_MOT_AUTO_LOW_POWER_MSK         UINT8_C(0x01)
 
-#define BMA456H_AUTO_LOW_POWER_TIME_OUT_MSK      UINT8_C(0x02)
-#define BMA456H_AUTO_LOW_POWER_TIME_OUT_POS      UINT8_C(0x1)
-#define BMA456H_TIME_OUT_DUR_MSK                 UINT16_C(0x1FFC)
-#define BMA456H_TIME_OUT_DUR_POS                 UINT16_C(0x02)
-#define BMA456H_LOW_POW_ODR_MSK                  UINT8_C(0x60)
-#define BMA456H_LOW_POW_ODR_POS                  UINT8_C(0x05)
-#define BMA456H_PWR_MGT_ENABLE_MSK               UINT8_C(0x80)
-#define BMA456H_PWR_MGT_ENABLE_POS               UINT8_C(0x07)
-#define BMA456H_TIME_OUT_DUR_LSB_MSK             UINT16_C(0X00FC)
-#define BMA456H_TIME_OUT_DUR_LSB_POS             UINT8_C(0x02)
-#define BMA456H_TIME_OUT_DUR_MSB_MSK             UINT16_C(0X07C0)
-#define BMA456H_TIME_OUT_DUR_MSB_POS             UINT8_C(0X06)
+#define BMA456H_AUTO_LOW_POWER_TIME_OUT_MSK       UINT8_C(0x02)
+#define BMA456H_AUTO_LOW_POWER_TIME_OUT_POS       UINT8_C(0x1)
+#define BMA456H_TIME_OUT_DUR_MSK                  UINT16_C(0x1FFC)
+#define BMA456H_TIME_OUT_DUR_POS                  UINT16_C(0x02)
+#define BMA456H_LOW_POW_ODR_MSK                   UINT8_C(0x60)
+#define BMA456H_LOW_POW_ODR_POS                   UINT8_C(0x05)
+#define BMA456H_PWR_MGT_ENABLE_MSK                UINT8_C(0x80)
+#define BMA456H_PWR_MGT_ENABLE_POS                UINT8_C(0x07)
+#define BMA456H_TIME_OUT_DUR_LSB_MSK              UINT16_C(0X00FC)
+#define BMA456H_TIME_OUT_DUR_LSB_POS              UINT8_C(0x02)
+#define BMA456H_TIME_OUT_DUR_MSB_MSK              UINT16_C(0X07C0)
+#define BMA456H_TIME_OUT_DUR_MSB_POS              UINT8_C(0X06)
 
-#define BMA456H_NO_MOT_AUTO_LOW_POWER_WORD_MSK   UINT16_C(0x01)
+#define BMA456H_NO_MOT_AUTO_LOW_POWER_WORD_MSK    UINT16_C(0x01)
 
-#define BMA456H_AUTO_LOW_POWER_TIME_OUT_WORD_MSK UINT16_C(0x02)
-#define BMA456H_AUTO_LOW_POWER_TIME_OUT_WORD_POS UINT8_C(0x1)
+#define BMA456H_AUTO_LOW_POWER_TIME_OUT_WORD_MSK  UINT16_C(0x02)
+#define BMA456H_AUTO_LOW_POWER_TIME_OUT_WORD_POS  UINT8_C(0x1)
 
-#define BMA456H_TIME_OUT_DUR_WORD_MSK            UINT16_C(0X1FFC)
-#define BMA456H_TIME_OUT_DUR_WORD_POS            UINT8_C(0x02)
+#define BMA456H_TIME_OUT_DUR_WORD_MSK             UINT16_C(0X1FFC)
+#define BMA456H_TIME_OUT_DUR_WORD_POS             UINT8_C(0x02)
 
-#define BMA456H_LOW_POW_ODR_WORD_MSK             UINT16_C(0x6000)
-#define BMA456H_LOW_POW_ODR_WORD_POS             UINT8_C(0x0D)
+#define BMA456H_LOW_POW_ODR_WORD_MSK              UINT16_C(0x6000)
+#define BMA456H_LOW_POW_ODR_WORD_POS              UINT8_C(0x0D)
 
-#define BMA456H_PWR_MGT_ENABLE_WORD_MSK          UINT16_C(0x8000)
-#define BMA456H_PWR_MGT_ENABLE_WORD_POS          UINT8_C(0x0F)
+#define BMA456H_PWR_MGT_ENABLE_WORD_MSK           UINT16_C(0x8000)
+#define BMA456H_PWR_MGT_ENABLE_WORD_POS           UINT8_C(0x0F)
 
 /**************************************************************/
 /**\name    User macros */
@@ -207,68 +205,60 @@ extern "C" {
 /**************************************************************/
 /**\name    Output: Features for enable/disable */
 /**************************************************************/
-#define BMA456H_NO_MOTION_X_AXIS_EN            UINT16_C(0x0001)
-#define BMA456H_NO_MOTION_Y_AXIS_EN            UINT16_C(0x0002)
-#define BMA456H_NO_MOTION_Z_AXIS_EN            UINT16_C(0x0004)
-#define BMA456H_NO_MOTION_ALL_AXIS_EN          UINT16_C(0x0007)
-#define BMA456H_ANY_MOTION_X_AXIS_EN           UINT16_C(0x0008)
-#define BMA456H_ANY_MOTION_Y_AXIS_EN           UINT16_C(0x0010)
-#define BMA456H_ANY_MOTION_Z_AXIS_EN           UINT16_C(0x0020)
-#define BMA456H_ANY_MOTION_ALL_AXIS_EN         UINT16_C(0x0038)
-#define BMA456H_IN_EAR_DETECTION_EN            UINT16_C(0x0040)
+#define BMA456H_NO_MOTION_X_AXIS_EN               UINT16_C(0x0001)
+#define BMA456H_NO_MOTION_Y_AXIS_EN               UINT16_C(0x0002)
+#define BMA456H_NO_MOTION_Z_AXIS_EN               UINT16_C(0x0004)
+#define BMA456H_NO_MOTION_ALL_AXIS_EN             UINT16_C(0x0007)
+#define BMA456H_ANY_MOTION_X_AXIS_EN              UINT16_C(0x0008)
+#define BMA456H_ANY_MOTION_Y_AXIS_EN              UINT16_C(0x0010)
+#define BMA456H_ANY_MOTION_Z_AXIS_EN              UINT16_C(0x0020)
+#define BMA456H_ANY_MOTION_ALL_AXIS_EN            UINT16_C(0x0038)
 
-#define BMA456H_STEP_DETECTOR_EN               UINT16_C(0x0100)
-#define BMA456H_STEP_COUNTER_EN                UINT16_C(0x0200)
-#define BMA456H_STEP_ACTIVITY_EN               UINT16_C(0x0400)
-#define BMA456H_AUTO_LOW_POWER_EN              UINT16_C(0x0800)
-#define BMA456H_SINGLE_TAP_EN                  UINT16_C(0x1000)
-#define BMA456H_DOUBLE_TAP_EN                  UINT16_C(0x2000)
-#define BMA456H_TRIPLE_TAP_EN                  UINT16_C(0x4000)
+#define BMA456H_STEP_DETECTOR_EN                  UINT16_C(0x0100)
+#define BMA456H_STEP_COUNTER_EN                   UINT16_C(0x0200)
+#define BMA456H_STEP_ACTIVITY_EN                  UINT16_C(0x0400)
+#define BMA456H_AUTO_LOW_POWER_EN                 UINT16_C(0x0800)
+#define BMA456H_SINGLE_TAP_EN                     UINT16_C(0x1000)
+#define BMA456H_DOUBLE_TAP_EN                     UINT16_C(0x2000)
+#define BMA456H_TRIPLE_TAP_EN                     UINT16_C(0x4000)
+#define BMA456H_TAP_AVERAGE_EN                    UINT16_C(0x8000)
 
 /**\name Interrupt status macros */
-#define BMA456H_TAP_OUT_INT                    UINT8_C(0x01)
-#define BMA456H_STEP_CNTR_INT                  UINT8_C(0x02)
-#define BMA456H_ACTIVITY_INT                   UINT8_C(0x04)
-#define BMA456H_IN_EAR_INT                     UINT8_C(0x08)
-#define BMA456H_ANY_MOT_INT                    UINT8_C(0x10)
-#define BMA456H_NO_MOT_INT                     UINT8_C(0x20)
-#define BMA456H_ERROR_INT                      UINT8_C(0x80)
+#define BMA456H_TAP_OUT_INT                       UINT8_C(0x01)
+#define BMA456H_STEP_CNTR_INT                     UINT8_C(0x02)
+#define BMA456H_ACTIVITY_INT                      UINT8_C(0x04)
+#define BMA456H_ANY_MOT_INT                       UINT8_C(0x10)
+#define BMA456H_NO_MOT_INT                        UINT8_C(0x20)
+#define BMA456H_ERROR_INT                         UINT8_C(0x80)
 
 /**\name Activity recognition macros */
-#define BMA456H_USER_STATIONARY                UINT8_C(0x00)
-#define BMA456H_USER_WALKING                   UINT8_C(0x01)
-#define BMA456H_USER_RUNNING                   UINT8_C(0x02)
-#define BMA456H_UNKNOWN_ACTVTY                 UINT8_C(0x03)
-
-/**\name In-ear detection recognition macros */
-#define BMA456H_DEVICE_UNKNOWN                 UINT8_C(0x00)
-#define BMA456H_DEVICE_NOT_IN_EAR              UINT8_C(0x01)
-#define BMA456H_DEVICE_WEARING                 UINT8_C(0x02)
-#define BMA456H_DEVICE_REMOVING                UINT8_C(0x03)
-#define BMA456H_DEVICE_IN_EAR                  UINT8_C(0x04)
+#define BMA456H_USER_STATIONARY                   UINT8_C(0x00)
+#define BMA456H_USER_WALKING                      UINT8_C(0x01)
+#define BMA456H_USER_RUNNING                      UINT8_C(0x02)
+#define BMA456H_UNKNOWN_ACTVTY                    UINT8_C(0x03)
 
 /**\name Address of features enable macros */
-#define BMA456H_FEAT_EN_ADDR1                  UINT8_C(0x28)
-#define BMA456H_FEAT_EN_ADDR2                  UINT8_C(0x29)
+#define BMA456H_FEAT_EN_ADDR1                     UINT8_C(0x28)
+#define BMA456H_FEAT_EN_ADDR2                     UINT8_C(0x29)
 
-#define BMA456H_FEAT_OUT_ADDR                  UINT8_C(0x27)
-#define BMA456H_FEAT_EN_SIZE                   UINT8_C(0x02)
+#define BMA456H_FEAT_OUT_ADDR                     UINT8_C(0x27)
+#define BMA456H_FEAT_EN_SIZE                      UINT8_C(0x02)
 
 /**\name Position and mask of interrupt behavior and slope */
-#define BMA456H_ANY_NO_MOTION_INTR_BHVR_EN_POS UINT8_C(0x03)
-#define BMA456H_ANY_NO_MOTION_INTR_BHVR_EN_MSK UINT8_C(0x08)
+#define BMA456H_ANY_NO_MOTION_INTR_BHVR_EN_POS    UINT8_C(0x03)
+#define BMA456H_ANY_NO_MOTION_INTR_BHVR_EN_MSK    UINT8_C(0x08)
 
-#define BMA456H_ANY_MOTION_SLOPE_EN_POS        UINT8_C(0x04)
-#define BMA456H_ANY_MOTION_SLOPE_EN_MSK        UINT8_C(0x10)
+#define BMA456H_ANY_MOTION_SLOPE_EN_POS           UINT8_C(0x04)
+#define BMA456H_ANY_MOTION_SLOPE_EN_MSK           UINT8_C(0x10)
 
-#define BMA456H_MULTI_INTR                     UINT8_C(0x00)
-#define BMA456H_SINGLE_SHOT                    UINT8_C(0x01)
+#define BMA456H_MULTI_INTR                        UINT8_C(0x00)
+#define BMA456H_SINGLE_SHOT                       UINT8_C(0x01)
 
-#define BMA456H_NON_CONSECUTIVE                UINT8_C(0x00)
-#define BMA456H_CONSECUTIVE                    UINT8_C(0x01)
+#define BMA456H_NON_CONSECUTIVE                   UINT8_C(0x00)
+#define BMA456H_CONSECUTIVE                       UINT8_C(0x01)
 
-#define BMA456H_AUTO_LOW_POWER_STATE_POS       UINT8_C(0x04)
-#define BMA456H_AUTO_LOW_POWER_STATE_MSK       UINT8_C(0x10)
+#define BMA456H_AUTO_LOW_POWER_STATE_POS          UINT8_C(0x04)
+#define BMA456H_AUTO_LOW_POWER_STATE_MSK          UINT8_C(0x10)
 
 /******************************************************************************/
 /*!  @name         Structure Declarations                             */
@@ -290,30 +280,6 @@ struct bma456h_any_no_mot_config
     uint8_t intr_bhvr;
 
     uint8_t slope;
-};
-
-/*!
- * @brief Axes re-mapping configuration
- */
-struct bma456h_axes_remap
-{
-    /*! Re-mapped x-axis */
-    uint8_t x_axis;
-
-    /*! Re-mapped y-axis */
-    uint8_t y_axis;
-
-    /*! Re-mapped z-axis */
-    uint8_t z_axis;
-
-    /*! Re-mapped x-axis sign */
-    uint8_t x_axis_sign;
-
-    /*! Re-mapped y-axis sign */
-    uint8_t y_axis_sign;
-
-    /*! Re-mapped z-axis sign */
-    uint8_t z_axis_sign;
 };
 
 /*!
@@ -482,43 +448,7 @@ struct bma456h_multitap_settings
 };
 
 /*!
- * @brief In-ear detection param settings
- */
-struct bma456h_in_ear_detection_settings
-{
-    /*! Enable check of shake gesture */
-    uint16_t en_shake_check;
-
-    /*! Minimum number of shakes of the device for detection of shake gesture */
-    uint16_t min_shakes;
-
-    /*! Reserved parameter */
-    uint16_t reserved_3;
-
-    /*! Reserved parameter */
-    uint16_t reserved_4;
-
-    /*! Reserved parameter */
-    uint16_t reserved_5;
-
-    /*! Reserved parameter */
-    uint16_t reserved_6;
-
-    /*! Reserved parameter */
-    uint16_t reserved_7;
-
-    /*! Coefficient for exponential smoothing of sum of consecutive acceleration sample slope */
-    uint16_t lp_slope_decay_coeff;
-
-    /*! Minimum threshold on sum of acceleration slope */
-    uint16_t min_acc_slope_thres;
-
-    /*! Minimum expected angle change */
-    uint16_t angle_threshold;
-};
-
-/*!
- * @brief activity, tap and ear output state
+ * @brief activity, tap output state
  */
 struct bma456h_out_state
 {
@@ -542,20 +472,6 @@ struct bma456h_out_state
 
     /*! Triple tap detected */
     uint8_t triple_tap;
-
-    /*!                     In-ear detection output
-     * -----------------------------------------------------------------------
-     *      Value                   Name                    Description
-     * -----------------------------------------------------------------------
-     *        0                    unknown                  unknown state
-     *        1                    not_in_ear              Device not in ear
-     *        2                   in_ear_event           Device transition from
-     *                                                     not in ear to in ear
-     *        3                 not_in_ear_event         Device transition from
-     *                                                     in ear to not in ear
-     *        4                   event_in_ear              Device in ear
-     */
-    uint8_t ear_detection_out;
 };
 
 /***************************************************************************/
@@ -672,10 +588,9 @@ int8_t bma456h_get_config_id(uint16_t *config_id, struct bma4_dev *dev);
  * @note Below macros specify the interrupts.
  *
  * Feature Interrupts
- *  - BMA456H_TAP_INT
+ *  - BMA456H_TAP_OUT_INT
  *  - BMA456H_STEP_CNTR_INT
  *  - BMA456H_ACTIVITY_INT
- *  - BMA456H_IN_EAR_INT
  *  - BMA456H_ANY_MOT_INT
  *  - BMA456H_ERROR_INT
  *
@@ -714,8 +629,9 @@ int8_t bma456h_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable,
  * Feature Interrupts
  *  - BMA456H_STEP_CNTR_INT
  *  - BMA456H_ACTIVITY_INT
- *  - BMA456H_IN_EAR_INT
- *  - BMA456H_WAKEUP_INT
+ *  - BMA456H_SINGLE_TAP_EN
+ *  - BMA456H_DOUBLE_TAP_EN
+ *  - BMA456H_TRIPLE_TAP_EN
  *  - BMA456H_ANY_MOT_INT
  *  - BMA456H_ERROR_INT
  *
@@ -770,7 +686,6 @@ int8_t bma456h_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
  *   - BMA456H_ANY_MOTION_Y_AXIS_EN
  *   - BMA456H_ANY_MOTION_Z_AXIS_EN
  *   - BMA456H_ANY_MOTION_ALL_AXIS_EN
- *   - BMA456H_IN_EAR_DETECTION_EN
  *   - BMA456H_STEP_DETECTOR_EN
  *   - BMA456H_STEP_COUNTER_EN
  *   - BMA456H_STEP_ACTIVITY_EN
@@ -778,6 +693,7 @@ int8_t bma456h_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
  *   - BMA456H_SINGLE_TAP_EN
  *   - BMA456H_DOUBLE_TAP_EN
  *   - BMA456H_TRIPLE_TAP_EN
+ *   - BMA456H_TAP_AVERAGE_EN
  *
  * @return Result of API execution status
  * @retval 0 -> Success
@@ -795,7 +711,7 @@ int8_t bma456h_feature_enable(uint16_t feature, uint8_t enable, struct bma4_dev 
  * \ingroup bma456hApiRemap
  * \page bma456h_api_bma456h_set_remap_axes bma456h_set_remap_axes
  * \code
- * int8_t bma456h_set_remap_axes(const struct bma456h_axes_remap *remap_data, struct bma4_dev *dev);
+ * int8_t bma456h_set_remap_axes(const struct bma4_remap *remap_data, struct bma4_dev *dev);
  * \endcode
  * @details This API performs x, y and z axis remapping in the sensor.
  *
@@ -806,13 +722,13 @@ int8_t bma456h_feature_enable(uint16_t feature, uint8_t enable, struct bma4_dev 
  * @retval 0 -> Success
  * @retval < 0 -> Fail
  */
-int8_t bma456h_set_remap_axes(const struct bma456h_axes_remap *remap_data, struct bma4_dev *dev);
+int8_t bma456h_set_remap_axes(const struct bma4_remap *remap_data, struct bma4_dev *dev);
 
 /*!
  * \ingroup bma456hApiRemap
  * \page bma456h_api_bma456h_get_remap_axes bma456h_get_remap_axes
  * \code
- * int8_t bma456h_get_remap_axes(struct bma456h_axes_remap *remap_data, struct bma4_dev *dev);
+ * int8_t bma456h_get_remap_axes(struct bma4_remap *remap_data, struct bma4_dev *dev);
  * \endcode
  * @details This API reads the x, y and z axis remap data from the sensor.
  *
@@ -824,7 +740,7 @@ int8_t bma456h_set_remap_axes(const struct bma456h_axes_remap *remap_data, struc
  * @retval 0 -> Success
  * @retval < 0 -> Fail
  */
-int8_t bma456h_get_remap_axes(struct bma456h_axes_remap *remap_data, struct bma4_dev *dev);
+int8_t bma456h_get_remap_axes(struct bma4_remap *remap_data, struct bma4_dev *dev);
 
 /**
  * \ingroup bma456h
@@ -1025,7 +941,7 @@ int8_t bma456h_step_detector_enable(uint8_t enable, struct bma4_dev *dev);
  * \ingroup bma456hApiAnyMot
  * \page bma456h_api_bma456h_set_any_motion_config bma456h_set_any_motion_config
  * \code
- * int8_t bma456h_set_any_motion_config(const struct bma456h_anymotion_config *any_motion, struct bma4_dev *dev);
+ * int8_t bma456h_set_any_mot_config(const struct bma456h_any_no_mot_config *any_mot, struct bma4_dev *dev);
  * \endcode
  * @details This API sets the configuration of any-motion feature in the sensor
  * This API enables/disables the any-motion feature according to the axis set.
@@ -1321,23 +1237,6 @@ int8_t bma456h_tap_get_parameter(struct bma456h_multitap_settings *setting, stru
  */
 int8_t bma456h_tap_set_parameter(const struct bma456h_multitap_settings *setting, struct bma4_dev *dev);
 
-/*!
- * \ingroup bma456hApiTap
- * \page bma456h_api_bma456h_get_tap_output bma456h_get_tap_output
- * \code
- * int8_t bma456h_get_tap_output(uint8_t *tap, struct bma4_dev *dev);
- * \endcode
- * @details This api reads the feature output GPIOand extracts the type of tap detected
- *
- * @param tap[out]  : pointer to data buffer to store the type of detected.
- * @param dev[in]   : Structure instance of bma4_dev
- *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
- */
-int8_t bma456h_get_tap_output(uint8_t *tap, struct bma4_dev *dev);
-
 /**
  * \ingroup bma456h
  * \defgroup bma456hApiAutoLP Auto Low power mode
@@ -1395,54 +1294,23 @@ int8_t bma456h_set_auto_low_power_config(const struct bma456h_auto_low_power *au
  */
 int8_t bma456h_get_auto_low_power_state(uint8_t *auto_low_power_state, struct bma4_dev *dev);
 
-/**
- * \ingroup bma456h
- * \defgroup bma456hApiInEar In-Ear detection
- * @brief Set / Get Parameters of in-ear detection
- */
-
 /*!
- * \ingroup bma456hApiInEar
- * \page bma456h_api_bma456h_in_ear_detection_get_parameter bma456h_in_ear_detection_get_parameter
+ * \ingroup bma456hApiVersionConfig
+ * \page bma456h_api_bma456h_get_version_config bma456h_get_version_config
  * \code
- * int8_t bma456h_in_ear_detection_get_parameter(struct bma456h_in_ear_detection_settings *setting,
- *                                               struct bma4_dev *dev);
- *
+ *int8_t bma456h_get_version_config(uint16_t *config_major, uint16_t *config_minor, struct bma4_dev *dev);
  * \endcode
- * @details This API gets the parameter1 to parameter10 settings of the in-ear detection
- * feature.
+ * @details This API is used to get the config file major and minor information.
  *
- * @param[out] setting : Pointer to structure variable which stores the
- * parameter1 to parameter10 read from the sensor.
- * @param[in] dev : Structure instance of bma4_dev
+ * @param[in] dev   : Structure instance of bma4_dev.
+ * @param[out] config_major    : Pointer to data buffer to store the config major.
+ * @param[out] config_minor    : Pointer to data buffer to store the config minor.
  *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
+ *  @return Result of API execution status
+ *  @retval 0 -> Success
+ *  @retval < 0 -> Fail
  */
-int8_t bma456h_in_ear_detection_get_parameter(struct bma456h_in_ear_detection_settings *setting, struct bma4_dev *dev);
-
-/*!
- * \ingroup bma456hApiInEar
- * \page bma456h_api_bma456h_in_ear_detection_set_parameter bma456h_in_ear_detection_set_parameter
- * \code
- * int8_t bma456h_in_ear_detection_set_parameter(const struct bma456h_in_ear_detection_settings *setting,
- *                                               struct bma4_dev *dev);
- *
- * \endcode
- * @details This API sets the parameter1 to parameter12 settings of the in-ear detection
- * feature in the sensor.
- *
- * @param[in] setting : Pointer to structure variable which stores the
- * parameter1 to parameter10 settings read from the sensor.
- * @param[in] dev : Structure instance of bma4_dev
- *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
- */
-int8_t bma456h_in_ear_detection_set_parameter(const struct bma456h_in_ear_detection_settings *setting,
-                                              struct bma4_dev *dev);
+int8_t bma456h_get_version_config(uint16_t *config_major, uint16_t *config_minor, struct bma4_dev *dev);
 
 #ifdef __cplusplus
 }

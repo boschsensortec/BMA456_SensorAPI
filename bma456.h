@@ -1,40 +1,40 @@
 /**
- * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
- *
- * BSD-3-Clause
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @file       bma456.h
- * @date       2020-04-09
- * @version    V2.14.12
- *
- */
+* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+*
+* BSD-3-Clause
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*
+* @file       bma456.h
+* @date       2021-08-06
+* @version    V2.20.4
+*
+*/
 
 /**
  * \ingroup bma4xy
@@ -51,126 +51,126 @@ extern "C" {
 #include "bma4.h"
 
 /**\name Chip ID of BMA456 sensor */
-#define BMA456_CHIP_ID                UINT8_C(0x16)
+#define BMA456_CHIP_ID                 UINT8_C(0x16)
 
 /**\name Sensor feature size */
-#define BMA456_FEATURE_SIZE           UINT8_C(70)
-#define BMA456_ANY_MOT_LEN            UINT8_C(4)
+#define BMA456_FEATURE_SIZE            UINT8_C(70)
+#define BMA456_ANY_MOT_LEN             UINT8_C(4)
 
 /**\name Feature offset address */
-#define BMA456_ANY_MOT_OFFSET         UINT8_C(0x00)
-#define BMA456_NO_MOT_OFFSET          UINT8_C(0x04)
-#define BMA456_STEP_CNTR_PARAM_OFFSET UINT8_C(0x08)
-#define BMA456_STEP_CNTR_OFFSET       UINT8_C(0x3A)
-#define BMA456_SINGLE_TAP_OFFSET      UINT8_C(0x3C)
-#define BMA456_DOUBLE_TAP_OFFSET      UINT8_C(0x3E)
-#define BMA456_WRIST_WEAR_OFFSET      UINT8_C(0x40)
-#define BMA456_CONFIG_ID_OFFSET       UINT8_C(0x42)
-#define BMA456_AXES_REMAP_OFFSET      UINT8_C(0x44)
+#define BMA456_ANY_MOT_OFFSET          UINT8_C(0x00)
+#define BMA456_NO_MOT_OFFSET           UINT8_C(0x04)
+#define BMA456_STEP_CNTR_PARAM_OFFSET  UINT8_C(0x08)
+#define BMA456_STEP_CNTR_OFFSET        UINT8_C(0x3A)
+#define BMA456_SINGLE_TAP_OFFSET       UINT8_C(0x3C)
+#define BMA456_DOUBLE_TAP_OFFSET       UINT8_C(0x3E)
+#define BMA456_WRIST_WEAR_OFFSET       UINT8_C(0x40)
+#define BMA456_CONFIG_ID_OFFSET        UINT8_C(0x42)
+#define BMA456_AXES_REMAP_OFFSET       UINT8_C(0x44)
 
 /**\name Read/Write Lengths */
-#define BMA456_RD_WR_MIN_LEN          UINT8_C(2)
+#define BMA456_RD_WR_MIN_LEN           UINT8_C(2)
 
 /*! @name Maximum valid read write length is size of config file array */
-#define BMA456_RD_WR_MAX_LEN          ((uint16_t)sizeof(bma456_config_file))
+#define BMA456_RD_WR_MAX_LEN           ((uint16_t)sizeof(bma456_config_file))
 
-#define BMA456_NO_MOT_RD_WR_LEN       (BMA456_ANY_MOT_LEN + BMA456_NO_MOT_OFFSET)
+#define BMA456_NO_MOT_RD_WR_LEN        (BMA456_ANY_MOT_LEN + BMA456_NO_MOT_OFFSET)
 
 /**************************************************************/
 /**\name    Re-map Axes */
 /**************************************************************/
-#define BMA456_X_AXIS_MASK            UINT8_C(0x03)
-#define BMA456_X_AXIS_SIGN_MASK       UINT8_C(0x04)
-#define BMA456_Y_AXIS_MASK            UINT8_C(0x18)
-#define BMA456_Y_AXIS_SIGN_MASK       UINT8_C(0x20)
-#define BMA456_Z_AXIS_MASK            UINT8_C(0xC0)
-#define BMA456_Z_AXIS_SIGN_MASK       UINT8_C(0x01)
+#define BMA456_X_AXIS_MASK             UINT8_C(0x03)
+#define BMA456_X_AXIS_SIGN_MASK        UINT8_C(0x04)
+#define BMA456_Y_AXIS_MASK             UINT8_C(0x18)
+#define BMA456_Y_AXIS_SIGN_MASK        UINT8_C(0x20)
+#define BMA456_Z_AXIS_MASK             UINT8_C(0xC0)
+#define BMA456_Z_AXIS_SIGN_MASK        UINT8_C(0x01)
 
 /**************************************************************/
 /**\name    Step Counter/Detector/Activity */
 /**************************************************************/
 /**\name Step counter/activity enable macros */
-#define BMA456_STEP_CNTR_EN_POS     UINT8_C(4)
-#define BMA456_STEP_ACT_EN_POS      UINT8_C(5)
-#define BMA456_STEP_CNTR_EN_MSK     UINT8_C(0x10)
-#define BMA456_STEP_ACT_EN_MSK      UINT8_C(0x20)
+#define BMA456_STEP_CNTR_EN_POS        UINT8_C(4)
+#define BMA456_STEP_ACT_EN_POS         UINT8_C(5)
+#define BMA456_STEP_CNTR_EN_MSK        UINT8_C(0x10)
+#define BMA456_STEP_ACT_EN_MSK         UINT8_C(0x20)
 
 /**\name Step counter water-mark macros */
-#define BMA456_STEP_CNTR_WM_MSK     UINT16_C(0x03FF)
+#define BMA456_STEP_CNTR_WM_MSK        UINT16_C(0x03FF)
 
 /**\name Step counter reset macros */
-#define BMA456_STEP_CNTR_RST_POS    UINT8_C(2)
-#define BMA456_STEP_CNTR_RST_MSK    UINT8_C(0x04)
+#define BMA456_STEP_CNTR_RST_POS       UINT8_C(2)
+#define BMA456_STEP_CNTR_RST_MSK       UINT8_C(0x04)
 
 /**\name Step detector enable macros */
-#define BMA456_STEP_DETECTOR_EN_POS UINT8_C(3)
-#define BMA456_STEP_DETECTOR_EN_MSK UINT8_C(0x08)
+#define BMA456_STEP_DETECTOR_EN_POS    UINT8_C(3)
+#define BMA456_STEP_DETECTOR_EN_MSK    UINT8_C(0x08)
 
 /**\name Wrist wakeup enable macros */
-#define BMA456_WRIST_WEAR_EN_MSK    UINT8_C(0x01)
+#define BMA456_WRIST_WEAR_EN_MSK       UINT8_C(0x01)
 
 /**\name Single tap enable macros */
-#define BMA456_SINGLE_TAP_EN_MSK    UINT8_C(0x01)
+#define BMA456_SINGLE_TAP_EN_MSK       UINT8_C(0x01)
 
 /**\name Double tap enable macros */
-#define BMA456_DOUBLE_TAP_EN_MSK    UINT8_C(0x01)
+#define BMA456_DOUBLE_TAP_EN_MSK       UINT8_C(0x01)
 
 /**\name Tap sensitivity macros */
-#define BMA456_TAP_SENS_POS         UINT8_C(1)
-#define BMA456_TAP_SENS_MSK         UINT8_C(0x0E)
+#define BMA456_TAP_SENS_POS            UINT8_C(1)
+#define BMA456_TAP_SENS_MSK            UINT8_C(0x0E)
 
 /**\name Tap selection macro */
-#define BMA456_TAP_SEL_POS          UINT8_C(4)
-#define BMA456_TAP_SEL_MSK          UINT8_C(0x10)
+#define BMA456_TAP_SEL_POS             UINT8_C(4)
+#define BMA456_TAP_SEL_MSK             UINT8_C(0x10)
 
 /**\name Step count output length */
-#define BMA456_STEP_CNTR_DATA_SIZE  UINT16_C(4)
+#define BMA456_STEP_CNTR_DATA_SIZE     UINT16_C(4)
 
 /**************************************************************/
 /**\name    Any/no Motion */
 /**************************************************************/
 /**\name Any/No motion threshold macros */
-#define BMA456_ANY_NO_MOT_THRES_MSK   UINT16_C(0x07FF)
+#define BMA456_ANY_NO_MOT_THRES_MSK    UINT16_C(0x07FF)
 
 /**\name Any/No motion duration macros */
-#define BMA456_ANY_NO_MOT_DUR_MSK     UINT16_C(0x1FFF)
+#define BMA456_ANY_NO_MOT_DUR_MSK      UINT16_C(0x1FFF)
 
 /**\name Any/No motion enable macros */
-#define BMA456_ANY_NO_MOT_AXIS_EN_POS UINT8_C(0x0D)
-#define BMA456_ANY_NO_MOT_AXIS_EN_MSK UINT16_C(0xE000)
+#define BMA456_ANY_NO_MOT_AXIS_EN_POS  UINT8_C(0x0D)
+#define BMA456_ANY_NO_MOT_AXIS_EN_MSK  UINT16_C(0xE000)
 
 /**************************************************************/
 /**\name    User macros */
 /**************************************************************/
 /**\name Any-motion/No-motion axis enable macros */
-#define BMA456_X_AXIS_EN       UINT8_C(0x01)
-#define BMA456_Y_AXIS_EN       UINT8_C(0x02)
-#define BMA456_Z_AXIS_EN       UINT8_C(0x04)
-#define BMA456_EN_ALL_AXIS     UINT8_C(0x07)
-#define BMA456_DIS_ALL_AXIS    UINT8_C(0x00)
+#define BMA456_X_AXIS_EN               UINT8_C(0x01)
+#define BMA456_Y_AXIS_EN               UINT8_C(0x02)
+#define BMA456_Z_AXIS_EN               UINT8_C(0x04)
+#define BMA456_EN_ALL_AXIS             UINT8_C(0x07)
+#define BMA456_DIS_ALL_AXIS            UINT8_C(0x00)
 
 /**\name Feature enable macros for the sensor */
-#define BMA456_STEP_CNTR       UINT8_C(0x01)
-#define BMA456_STEP_ACT        UINT8_C(0x02)
-#define BMA456_WRIST_WEAR      UINT8_C(0x04)
-#define BMA456_SINGLE_TAP      UINT8_C(0x08)
-#define BMA456_DOUBLE_TAP      UINT8_C(0x10)
+#define BMA456_STEP_CNTR               UINT8_C(0x01)
+#define BMA456_STEP_ACT                UINT8_C(0x02)
+#define BMA456_WRIST_WEAR              UINT8_C(0x04)
+#define BMA456_SINGLE_TAP              UINT8_C(0x08)
+#define BMA456_DOUBLE_TAP              UINT8_C(0x10)
 
 /**\name Interrupt status macros */
-#define BMA456_SINGLE_TAP_INT  UINT8_C(0x01)
-#define BMA456_STEP_CNTR_INT   UINT8_C(0x02)
-#define BMA456_ACTIVITY_INT    UINT8_C(0x04)
-#define BMA456_WRIST_WEAR_INT  UINT8_C(0x08)
-#define BMA456_DOUBLE_TAP_INT  UINT8_C(0x10)
-#define BMA456_ANY_MOT_INT     UINT8_C(0x20)
-#define BMA456_NO_MOT_INT      UINT8_C(0x40)
-#define BMA456_ERROR_INT       UINT8_C(0x80)
+#define BMA456_SINGLE_TAP_INT          UINT8_C(0x01)
+#define BMA456_STEP_CNTR_INT           UINT8_C(0x02)
+#define BMA456_ACTIVITY_INT            UINT8_C(0x04)
+#define BMA456_WRIST_WEAR_INT          UINT8_C(0x08)
+#define BMA456_DOUBLE_TAP_INT          UINT8_C(0x10)
+#define BMA456_ANY_MOT_INT             UINT8_C(0x20)
+#define BMA456_NO_MOT_INT              UINT8_C(0x40)
+#define BMA456_ERROR_INT               UINT8_C(0x80)
 
 /**\name Activity recognition macros */
-#define BMA456_USER_STATIONARY UINT8_C(0x00)
-#define BMA456_USER_WALKING    UINT8_C(0x01)
-#define BMA456_USER_RUNNING    UINT8_C(0x02)
-#define BMA456_STATE_INVALID   UINT8_C(0x03)
+#define BMA456_USER_STATIONARY         UINT8_C(0x00)
+#define BMA456_USER_WALKING            UINT8_C(0x01)
+#define BMA456_USER_RUNNING            UINT8_C(0x02)
+#define BMA456_STATE_INVALID           UINT8_C(0x03)
 
 /******************************************************************************/
 /*!  @name         Structure Declarations                             */
@@ -191,30 +191,6 @@ struct bma456_any_no_mot_config
 
     /*! To enable selected axes */
     uint8_t axes_en;
-};
-
-/*!
- * @brief Axes re-mapping configuration
- */
-struct bma456_axes_remap
-{
-    /*! Re-mapped x-axis */
-    uint8_t x_axis;
-
-    /*! Re-mapped y-axis */
-    uint8_t y_axis;
-
-    /*! Re-mapped z-axis */
-    uint8_t z_axis;
-
-    /*! Re-mapped x-axis sign */
-    uint8_t x_axis_sign;
-
-    /*! Re-mapped y-axis sign */
-    uint8_t y_axis_sign;
-
-    /*! Re-mapped z-axis sign */
-    uint8_t z_axis_sign;
 };
 
 /*!
@@ -350,6 +326,24 @@ int8_t bma456_init(struct bma4_dev *dev);
  */
 int8_t bma456_write_config_file(struct bma4_dev *dev);
 
+/*!
+ * \ingroup bma456ApiConfig
+ * \page bma456_api_bma456_get_version_config bma456_get_version_config
+ * \code
+ *int8_t bma456_get_version_config(uint16_t *config_major, uint16_t *config_minor, struct bma4_dev *dev);
+ * \endcode
+ * @details This API is used to get the config file major and minor information.
+ *
+ * @param[in] dev   : Structure instance of bma4_dev.
+ * @param[out] config_major    : Pointer to data buffer to store the config major.
+ * @param[out] config_minor    : Pointer to data buffer to store the config minor.
+ *
+ *  @return Result of API execution status
+ *  @retval 0 -> Success
+ *  @retval < 0 -> Fail
+ */
+int8_t bma456_get_version_config(uint16_t *config_major, uint16_t *config_minor, struct bma4_dev *dev);
+
 /**
  * \ingroup bma456
  * \defgroup bma456ApiConfigId ConfigId
@@ -415,7 +409,8 @@ int8_t bma456_get_config_id(uint16_t *config_id, struct bma4_dev *dev);
  *  - BMA456_STEP_CNTR_INT
  *  - BMA456_ACTIVITY_INT
  *  - BMA456_WRIST_WEAR_INT
- *  - BMA456_WAKEUP_INT
+ *  - BMA456_SINGLE_TAP_INT
+ *  - BMA456_DOUBLE_TAP_INT
  *  - BMA456_ANY_MOT_INT
  *  - BMA456_NO_MOT_INT
  *  - BMA456_ERROR_INT
@@ -456,7 +451,8 @@ int8_t bma456_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, 
  *  - BMA456_STEP_CNTR_INT
  *  - BMA456_ACTIVITY_INT
  *  - BMA456_WRIST_WEAR_INT
- *  - BMA456_WAKEUP_INT
+ *  - BMA456_SINGLE_TAP_INT
+ *  - BMA456_DOUBLE_TAP_INT
  *  - BMA456_ANY_MOT_INT
  *  - BMA456_NO_MOT_INT
  *  - BMA456_ERROR_INT
@@ -506,7 +502,8 @@ int8_t bma456_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
  *
  *   - BMA456_STEP_CNTR
  *   - BMA456_ACTIVITY
- *   - BMA456_WAKEUP
+ *   - BMA456_SINGLE_TAP
+ *   - BMA456_DOUBLE_TAP
  *   - BMA456_WRIST_WEAR
  *
  * @return Result of API execution status
@@ -525,7 +522,7 @@ int8_t bma456_feature_enable(uint8_t feature, uint8_t enable, struct bma4_dev *d
  * \ingroup bma456ApiRemap
  * \page bma456_api_bma456_set_remap_axes bma456_set_remap_axes
  * \code
- * int8_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+ * int8_t bma456_set_remap_axes(const struct bma4_remap *remap_data, struct bma4_dev *dev);
  * \endcode
  * @details This API performs x, y and z axis remapping in the sensor.
  *
@@ -536,13 +533,13 @@ int8_t bma456_feature_enable(uint8_t feature, uint8_t enable, struct bma4_dev *d
  * @retval 0 -> Success
  * @retval < 0 -> Fail
  */
-int8_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+int8_t bma456_set_remap_axes(const struct bma4_remap *remap_data, struct bma4_dev *dev);
 
 /*!
  * \ingroup bma456ApiRemap
  * \page bma456_api_bma456_get_remap_axes bma456_get_remap_axes
  * \code
- * int8_t bma456_get_remap_axes(struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+ * int8_t bma456_get_remap_axes(struct bma4_remap *remap_data, struct bma4_dev *dev);
  * \endcode
  * @details This API reads the x, y and z axis remap data from the sensor.
  *
@@ -554,7 +551,7 @@ int8_t bma456_set_remap_axes(const struct bma456_axes_remap *remap_data, struct 
  * @retval 0 -> Success
  * @retval < 0 -> Fail
  */
-int8_t bma456_get_remap_axes(struct bma456_axes_remap *remap_data, struct bma4_dev *dev);
+int8_t bma456_get_remap_axes(struct bma4_remap *remap_data, struct bma4_dev *dev);
 
 /**
  * \ingroup bma456

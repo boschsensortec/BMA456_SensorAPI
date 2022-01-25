@@ -1,40 +1,40 @@
 /**
- * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
- *
- * BSD-3-Clause
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived from
- *    this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * @file       bma4.h
- * @date       2020-04-09
- * @version    V2.14.12
- *
- */
+* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+*
+* BSD-3-Clause
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright
+*    notice, this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright
+*    notice, this list of conditions and the following disclaimer in the
+*    documentation and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+* IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+*
+* @file       bma4.h
+* @date       2021-08-06
+* @version    V2.20.4
+*
+*/
 
 /*
  * @file       bma4.h
@@ -233,41 +233,6 @@ int8_t bma4_read_regs(uint8_t addr, uint8_t *data, uint32_t len, struct bma4_dev
  *  @retval < 0 -> Fail
  */
 int8_t bma4_get_error_status(struct bma4_err_reg *err_reg, struct bma4_dev *dev);
-
-/**
- * \ingroup bma4
- * \defgroup bma4ApiStatus Status
- * @brief Read sensor status
- */
-
-/*!
- * \ingroup bma4ApiStatus
- * \page bma4_api_bma4_get_status bma4_get_status
- * \code
- * int8_t bma4_get_status(uint8_t *status, struct bma4_dev *dev);
- * \endcode
- * @details This API reads the sensor status from the dev sensor.
- *
- * Below table lists the sensor status flags
- *
- * @verbatim
- *                 Status          |       Description
- *     ----------------------------|----------------------------------------
- *     BMA4_MAG_MAN_OP_ONGOING     | Manual Mag. interface operation ongoing
- *     BMA4_CMD_RDY                | Command decoder is ready.
- *     BMA4_MAG_DATA_RDY           | Data ready for Mag.
- *     BMA4_ACC_DATA_RDY           | Data ready for Accel.
- *@endverbatim
- *
- * @param[in] status : Variable used to store the sensor status flags
- * which is read from the sensor.
- * @param[in] dev : Structure instance of bma4_dev.
- *
- *  @return Result of API execution status
- *  @retval 0 -> Success
- *  @retval < 0 -> Fail
- */
-int8_t bma4_get_status(uint8_t *status, struct bma4_dev *dev);
 
 /**
  * \ingroup bma4
@@ -1102,7 +1067,11 @@ int8_t bma4_get_mag_burst(uint8_t *mag_burst, struct bma4_dev *dev);
  * \endcode
  * @details This API reads the FIFO data of Accel and/or Mag sensor
  *
- * @param dev  : Structure instance of bma4_dev
+ * @param[in] fifo : Structure instance of bma4_fifo_frame
+ * @param[in] dev  : Structure instance of bma4_dev
+ *
+ * @note : Dummy byte (for SPI Interface) required for FIFO data read
+ * must be given as part of data pointer in struct bma4_fifo_frame
  *
  * @return Result of API execution status
  * @retval 0 -> Success
@@ -1426,54 +1395,6 @@ int8_t bma4_set_if_mode(uint8_t if_mode, struct bma4_dev *dev);
 
 /**
  * \ingroup bma4
- * \defgroup bma4ApiAccelDataRdy Accel Data Ready
- * @brief Get accel data ready status from the sensor
- */
-
-/*!
- * \ingroup bma4ApiAccelDataRdy
- * \page bma4_api_bma4_get_accel_data_rdy bma4_get_accel_data_rdy
- * \code
- * int8_t bma4_get_accel_data_rdy(uint8_t *data_rdy, struct bma4_dev *dev);
- * \endcode
- * @details This API reads the data ready status of Accel from the sensor.
- * @note The status get reset when Accel data register is read.
- *
- * @param[out] data_rdy : Pointer variable to store the data ready  status
- * @param[in] dev : structure instance of bma4_dev
- *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
- */
-int8_t bma4_get_accel_data_rdy(uint8_t *data_rdy, struct bma4_dev *dev);
-
-/**
- * \ingroup bma4
- * \defgroup bma4ApiMagDataRdy Mag Data Ready
- * @brief Get Mag data ready status from the sensor
- */
-
-/*!
- * \ingroup bma4ApiMagDataRdy
- * \page bma4_api_bma4_get_mag_data_rdy bma4_get_mag_data_rdy
- * \code
- * int8_t bma4_get_mag_data_rdy(uint8_t *data_rdy, struct bma4_dev *dev);
- * \endcode
- * @details This API reads the data ready status of Mag from the sensor.
- * The status get reset when Mag data register is read.
- *
- * @param[out] data_rdy : Pointer variable to store the data ready status
- * @param[in] dev : Structure instance of bma4_dev
- *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
- */
-int8_t bma4_get_mag_data_rdy(uint8_t *data_rdy, struct bma4_dev *dev);
-
-/**
- * \ingroup bma4
  * \defgroup bma4ApiASICStatus ASIC status
  * @brief Read ASIC status from the sensor
  */
@@ -1687,24 +1608,6 @@ int8_t bma4_extract_mag(const struct bma4_mag *mag_data,
  * @retval < 0 -> Fail
  */
 int8_t bma4_perform_accel_selftest(int8_t *result, struct bma4_dev *dev);
-
-/*!
- * \ingroup bma4ApiAccelSelftest
- * \page bma4_api_bma4_selftest_config bma4_selftest_config
- * \code
- * int8_t bma4_selftest_config(uint8_t sign, struct bma4_dev *dev);
- * \endcode
- * @details This API performs the steps needed for Self test operation
- *  before reading the Accel Self test data.
- *
- *  @param[in] sign: Variable used to specify the self test sign
- *  @param[in] dev : Structure instance of bma4_dev
- *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
- */
-int8_t bma4_selftest_config(uint8_t sign, struct bma4_dev *dev);
 
 /**
  * \ingroup bma4
@@ -2118,42 +2021,6 @@ int8_t bma4_get_int_pin_config(struct bma4_int_pin_config *int_pin_config, uint8
  */
 int8_t bma4_read_int_status(uint16_t *int_status, struct bma4_dev *dev);
 
-/*!
- * \ingroup bma4ApiIntStatus
- * \page bma4_api_bma4_read_int_status_0 bma4_read_int_status_0
- * \code
- * int8_t bma4_read_int_status_0(uint8_t *int_status_0, struct bma4_dev *dev);
- * \endcode
- * @details This API reads the Feature interrupt status from the sensor.
- *
- *  @param[out] int_status_0 : Variable used to get the interrupt status.
- *  @param[in] dev       : Structure instance of bma4_dev.
- *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
- *
- */
-int8_t bma4_read_int_status_0(uint8_t *int_status_0, struct bma4_dev *dev);
-
-/*!
- * \ingroup bma4ApiIntStatus
- * \page bma4_api_bma4_read_int_status_1 bma4_read_int_status_1
- * \code
- * int8_t bma4_read_int_status_1(uint8_t *int_status_1, struct bma4_dev *dev);
- * \endcode
- * @details This API reads the Hardware interrupt status from the sensor.
- *
- *  @param[out] int_status_1 : Variable used to get the interrupt status.
- *  @param[in] dev       : Structure instance of bma4_dev.
- *
- * @return Result of API execution status
- * @retval 0 -> Success
- * @retval < 0 -> Fail
- *
- */
-int8_t bma4_read_int_status_1(uint8_t *int_status_1, struct bma4_dev *dev);
-
 /**
  * \ingroup bma4
  * \defgroup bma4ApiAux Auxiliary interface
@@ -2275,6 +2142,67 @@ int8_t bma4_soft_reset(struct bma4_dev *dev);
  *
  */
 int8_t bma4_perform_accel_foc(const struct bma4_accel_foc_g_value *accel_g_value, struct bma4_dev *dev);
+
+/**
+ * \ingroup bma4
+ * \defgroup bma4ApiAxisRemap Axis Remap
+ * @brief Functions of axis re-mapping of bma4 sensors
+ */
+
+/*!
+ * \ingroup bma4ApiAxisRemap
+ * @brief Set / Get x, y and z axis re-mapping in the sensor
+ * \page bma4_api_bma4_set_remap_axes bma4_set_remap_axes
+ * \code
+ * int8_t bma4_set_remap_axes(const struct bma4_remap *remapped_axis, uint8_t *feature_config, uint8_t index, uint8_t feature_len, struct bma4_dev *dev);
+ * \endcode
+ * @details This API sets the re-mapped x, y and z axes to the sensor and
+ * updates them in the device structure.
+ *
+ * @param[in] remap_data      : Structure instance of bma4_remap
+ * @param[in] feature_config   : Array data containing feature configurations
+ * @param[in] index            : Index to which mapping has to be applied
+ * @param[in] feature_len      : Length of feature configurations
+ * @param[in, out] dev         : Structure instance of bma4_dev
+ *
+ * @return Result of API execution status.
+ *
+ * @return 0 -> Success
+ * @return < 0  -> Fail
+ *
+ */
+int8_t bma4_set_remap_axes(const struct bma4_remap *remapped_axis,
+                           uint8_t *feature_config,
+                           uint8_t index,
+                           uint8_t feature_len,
+                           struct bma4_dev *dev);
+
+/*!
+ * \ingroup bma4ApiAxisRemap
+ * \page bma4_api_bma4_get_remap_axes bma4_get_remap_axes
+ * \code
+ * int8_t bma4_get_remap_axes(struct bma4_remap *remapped_axis, uint8_t *feature_config, uint8_t index, uint8_t feature_len, struct bma4_dev *dev);
+ * \endcode
+ * @details This API gets the re-mapped x, y and z axes from the sensor and
+ * updates the values in the device structure.
+ *
+ * @param[out] remap_data      : Structure instance of bma4_remap
+ * @param[in] feature_config   : Array data containing feature configurations
+ * @param[in] index            : Index to which mapping has to be applied
+ * @param[in] feature_len      : Length of feature configurations
+ * @param[in, out] dev         : Structure instance of bma4_dev
+ *
+ * @return Result of API execution status.
+ *
+ * @return 0 -> Success
+ * @return < 0 -> Fail
+ *
+ */
+int8_t bma4_get_remap_axes(struct bma4_remap *remap_data,
+                           uint8_t *feature_config,
+                           uint8_t index,
+                           uint8_t feature_len,
+                           struct bma4_dev *dev);
 
 #endif
 
