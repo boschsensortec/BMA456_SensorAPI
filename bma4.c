@@ -3428,7 +3428,7 @@ int8_t bma4_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, st
                 data[int_line] |= (uint8_t)(int_map & (0x00FF));
 
                 /* Hardware interrupt mapping */
-                data[2] |= (uint8_t)((int_map & (0xFF00)) >> 8);
+				data[2] |= (uint8_t)((int_map & (0xFF00)) >> ( int_line == 0 ? 8 : 4) );
             }
             else
             {
@@ -3436,7 +3436,7 @@ int8_t bma4_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, st
                 data[int_line] &= (~(uint8_t)(int_map & (0x00FF)));
 
                 /* Hardware interrupt un-mapping */
-                data[2] &= (~(uint8_t)((int_map & (0xFF00)) >> 8));
+				data[2] &= (~(uint8_t)((int_map & (0xFF00)) >> ( int_line == 0 ? 8 : 4) ));
             }
 
             rslt = bma4_write_regs(index[int_line], &data[int_line], 1, dev);
