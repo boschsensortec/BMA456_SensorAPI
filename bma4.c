@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bma4.c
-* @date       2021-08-06
-* @version    V2.20.4
+* @date       2022-07-01
+* @version    V2.24.1
 *
 */
 
@@ -3428,7 +3428,7 @@ int8_t bma4_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, st
                 data[int_line] |= (uint8_t)(int_map & (0x00FF));
 
                 /* Hardware interrupt mapping */
-                data[2] |= (uint8_t)((int_map & (0xFF00)) >> 8);
+                data[2] |= (uint8_t)((int_map & (0xFF00)) >> (8 - (4 * int_line)));
             }
             else
             {
@@ -3436,7 +3436,7 @@ int8_t bma4_map_interrupt(uint8_t int_line, uint16_t int_map, uint8_t enable, st
                 data[int_line] &= (~(uint8_t)(int_map & (0x00FF)));
 
                 /* Hardware interrupt un-mapping */
-                data[2] &= (~(uint8_t)((int_map & (0xFF00)) >> 8));
+                data[2] &= (~(uint8_t)((int_map & (0xFF00)) >> (8 - (4 * int_line))));
             }
 
             rslt = bma4_write_regs(index[int_line], &data[int_line], 1, dev);

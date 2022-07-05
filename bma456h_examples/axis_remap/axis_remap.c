@@ -1,12 +1,8 @@
-/**
- * Copyright (C) 2021 Bosch Sensortec GmbH
+/**\
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
- *
- * @file    axis_remap.c
- * @brief   Test code to demonstrate on axis remap feature
- *
- */
+ **/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,9 +24,9 @@
  *  @return status
  *
  */
-int main(int argc, char *argv[])
+int main(void)
 {
-    int8_t rslt = BMA4_OK;
+    int8_t rslt;
     struct bma4_dev bma4;
     uint16_t int_status = 0;
     struct bma4_remap remap_data = { 0 };
@@ -119,7 +115,7 @@ int main(int argc, char *argv[])
 
     printf("Print mapped data\n");
 
-    while (1)
+    for (;;)
     {
         /* Read interrupt status */
         rslt = bma456h_read_int_status(&int_status, &bma4);
@@ -175,7 +171,7 @@ int main(int argc, char *argv[])
 
     printf("Print mapped data\n");
 
-    while (1)
+    for (;;)
     {
         /* Read interrupt status */
         rslt = bma456h_read_int_status(&int_status, &bma4);
@@ -231,7 +227,7 @@ int main(int argc, char *argv[])
 
     printf("Print mapped data\n");
 
-    while (1)
+    for (;;)
     {
         /* Read interrupt status */
         rslt = bma456h_read_int_status(&int_status, &bma4);
@@ -286,7 +282,7 @@ int main(int argc, char *argv[])
 
     printf("Print mapped data\n");
 
-    while (1)
+    for (;;)
     {
         /* Read interrupt status */
         rslt = bma456h_read_int_status(&int_status, &bma4);
@@ -342,7 +338,7 @@ int main(int argc, char *argv[])
 
     printf("Print mapped data\n");
 
-    while (1)
+    for (;;)
     {
         /* Read interrupt status */
         rslt = bma456h_read_int_status(&int_status, &bma4);

@@ -1,16 +1,20 @@
 /**\
- * Copyright (c) 2020 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
 
 /******************************************************************************/
 /*!                 Header Files                                              */
+#include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 #include <string.h>
 
 #include "bma456h.h"
 #include "common.h"
+#include "coines.h"
 
 /******************************************************************************/
 /*!                   Macro Definitions                                       */
@@ -50,7 +54,6 @@ static int8_t perform_foc_range_test(uint8_t range, uint8_t input_axis, struct b
 /*!
  *  @brief This internal API is to determine if average accel FOC data is within limits
  *
- *  @param[in] range                   : Value of Accel range
  *  @param[in] avg_accel_foc_data      : Average Accel FOC value
  *  @param[in] reference               : Reference LSB based on Accel Range
  *  @param[in] foc_sign                : Input sign of performed Accel FOC
@@ -59,8 +62,7 @@ static int8_t perform_foc_range_test(uint8_t range, uint8_t input_axis, struct b
  *
  *  @return Status of execution.
  */
-static int8_t accel_foc_report(uint8_t range,
-                               int16_t avg_accel_foc_data,
+static int8_t accel_foc_report(int16_t avg_accel_foc_data,
                                int16_t reference,
                                uint8_t foc_sign,
                                int16_t min_val,
@@ -92,8 +94,9 @@ static int8_t verify_accel_foc_data(uint8_t range,
  *
  *  @return Status of execution.
  */
-static void calculate_noise(int8_t matched_axis, struct bma4_accel *accel_foc_data,
-                            struct bma4_accel avg_accel_foc_data);
+static void calculate_noise(int8_t matched_axis,
+                            const struct bma4_accel *accel_foc_data,
+                            const struct bma4_accel avg_accel_foc_data);
 
 /******************************************************************************/
 /*!            Functions                                                      */
@@ -104,7 +107,7 @@ int main(void)
     /* Sensor initialization configuration. */
     struct bma4_dev dev;
 
-    uint8_t try = 0, j = 0;
+    uint8_t try = 0, j;
     int8_t rslt;
     struct bma4_accel_config accel_conf = { 0 };
     uint8_t data = 0, range, input_axis = 0;
@@ -128,9 +131,9 @@ int main(void)
     printf("Press '5' to choose -Y axis\n");
     printf("Press '6' to choose -Z axis\n");
 
-    while (1)
+    for (;;)
     {
-        scanf("%hu", (short unsigned int *)&input_axis);
+        scanf("%u", (unsigned int *)&input_axis);
         if (input_axis > 0 && input_axis < 7)
         {
             break;
@@ -177,7 +180,7 @@ int main(void)
             printf("Keep sensor in right position and press 5\n");
         }
 
-        while (1)
+        for (;;)
         {
             scanf("%hu", (short unsigned int *)&try);
             if (try == 5)
@@ -293,8 +296,7 @@ int main(void)
     return rslt;
 }
 
-static int8_t accel_foc_report(uint8_t range,
-                               int16_t avg_accel_foc_data,
+static int8_t accel_foc_report(int16_t avg_accel_foc_data,
                                int16_t reference,
                                uint8_t foc_sign,
                                int16_t min_val,
@@ -374,41 +376,42 @@ static int8_t accel_foc_report(uint8_t range,
     return rslt;
 }
 
-static void calculate_noise(int8_t matched_axis, struct bma4_accel *accel_foc_data,
-                            struct bma4_accel avg_accel_foc_data)
+static void calculate_noise(int8_t matched_axis,
+                            const struct bma4_accel *accel_foc_data,
+                            const struct bma4_accel avg_accel_foc_data)
 {
-    uint16_t variance = 0;
-    uint16_t noise_level = 0;
-    uint16_t index = 0;
+    int32_t variance = 0;
+    double noise_level;
+    uint16_t idx = 0;
 
     if (matched_axis == 'X')
     {
-        for (index = 0; index < ACCEL_SAMPLE_COUNT; index++)
+        for (idx = 0; idx < ACCEL_SAMPLE_COUNT; idx++)
         {
             variance +=
-                ((accel_foc_data[index].x - avg_accel_foc_data.x) * (accel_foc_data[index].x - avg_accel_foc_data.x));
+                ((accel_foc_data[idx].x - avg_accel_foc_data.x) * (accel_foc_data[idx].x - avg_accel_foc_data.x));
         }
     }
     else if (matched_axis == 'Y')
     {
-        for (index = 0; index < ACCEL_SAMPLE_COUNT; index++)
+        for (idx = 0; idx < ACCEL_SAMPLE_COUNT; idx++)
         {
             variance +=
-                ((accel_foc_data[index].y - avg_accel_foc_data.y) * (accel_foc_data[index].y - avg_accel_foc_data.y));
+                ((accel_foc_data[idx].y - avg_accel_foc_data.y) * (accel_foc_data[idx].y - avg_accel_foc_data.y));
         }
     }
     else if (matched_axis == 'Z')
     {
-        for (index = 0; index < ACCEL_SAMPLE_COUNT; index++)
+        for (idx = 0; idx < ACCEL_SAMPLE_COUNT; idx++)
         {
             variance +=
-                ((accel_foc_data[index].z - avg_accel_foc_data.z) * (accel_foc_data[index].z - avg_accel_foc_data.z));
+                ((accel_foc_data[idx].z - avg_accel_foc_data.z) * (accel_foc_data[idx].z - avg_accel_foc_data.z));
         }
     }
 
-    noise_level = sqrt(variance);
+    noise_level = sqrt((double)variance);
 
-    printf("\n# ********** NOISE LEVEL = %d **********\n", noise_level);
+    printf("\n# ********** NOISE LEVEL = %lf **********\n", noise_level);
 }
 
 static int8_t verify_accel_foc_data(uint8_t range,
@@ -422,8 +425,8 @@ static int8_t verify_accel_foc_data(uint8_t range,
     uint16_t reg_status = 0;
     int16_t xl, yl, zl;
     int16_t xh, yh, zh;
-    uint16_t min_val = 0;
-    uint16_t max_val = 0;
+    int16_t min_val = 0;
+    int16_t max_val = 0;
     struct bma4_accel accel_foc_data[ACCEL_SAMPLE_COUNT] = { { 0 } };
     struct temp_axes_val temp_foc_data = { 0 };
     struct bma4_accel avg_accel_foc_data = { 0 };
@@ -436,7 +439,7 @@ static int8_t verify_accel_foc_data(uint8_t range,
     /* Read accelerometer values before/after FOC */
     for (i = 0; i < ACCEL_SAMPLE_COUNT; i++)
     {
-        while (1)
+        for (;;)
         {
             /* To get the data ready interrupt status */
             rslt = bma4_read_int_status(&reg_status, dev);
@@ -544,8 +547,8 @@ static int8_t verify_accel_foc_data(uint8_t range,
 
     if ((matched_axis == 'X') && (foc_sign == 0))
     {
-        rslt = accel_foc_report(range, avg_accel_foc_data.x, reference, foc_sign, min_val, max_val);
-        printf("Range : %d  Avg_FOC-X : %d   Reference : %d   Min_Value : %u  Max_Value : %u\n",
+        rslt = accel_foc_report(avg_accel_foc_data.x, reference, foc_sign, min_val, max_val);
+        printf("Range : %u  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
                range,
                avg_accel_foc_data.x,
                reference,
@@ -554,8 +557,8 @@ static int8_t verify_accel_foc_data(uint8_t range,
     }
     else if ((matched_axis == 'Y') && (foc_sign == 0))
     {
-        rslt = accel_foc_report(range, avg_accel_foc_data.y, reference, foc_sign, min_val, max_val);
-        printf("Range : %d  Avg_FOC-X : %d   Reference : %d   Min_Value : %u  Max_Value : %u\n",
+        rslt = accel_foc_report(avg_accel_foc_data.y, reference, foc_sign, min_val, max_val);
+        printf("Range : %u  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
                range,
                avg_accel_foc_data.y,
                reference,
@@ -564,8 +567,8 @@ static int8_t verify_accel_foc_data(uint8_t range,
     }
     else if ((matched_axis == 'Z') && (foc_sign == 0))
     {
-        rslt = accel_foc_report(range, avg_accel_foc_data.z, reference, foc_sign, min_val, max_val);
-        printf("Range : %d  Avg_FOC-X : %d   Reference : %d   Min_Value : %u  Max_Value : %u\n",
+        rslt = accel_foc_report(avg_accel_foc_data.z, reference, foc_sign, min_val, max_val);
+        printf("Range : %u  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
                range,
                avg_accel_foc_data.z,
                reference,
@@ -574,10 +577,12 @@ static int8_t verify_accel_foc_data(uint8_t range,
     }
     else if ((matched_axis == 'X') && (foc_sign == 1))
     {
-        rslt =
-            accel_foc_report(range, avg_accel_foc_data.x, (reference * (-1)), foc_sign, (min_val * (-1)),
-                             (max_val * (-1)));
-        printf("Range : %d  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
+        rslt = accel_foc_report(avg_accel_foc_data.x,
+                                (int16_t)(reference * (-1)),
+                                foc_sign,
+                                (int16_t)(min_val * (-1)),
+                                (int16_t)(max_val * (-1)));
+        printf("Range : %u  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
                range,
                avg_accel_foc_data.x,
                (reference * (-1)),
@@ -586,10 +591,12 @@ static int8_t verify_accel_foc_data(uint8_t range,
     }
     else if ((matched_axis == 'Y') && (foc_sign == 1))
     {
-        rslt =
-            accel_foc_report(range, avg_accel_foc_data.y, (reference * (-1)), foc_sign, (min_val * (-1)),
-                             (max_val * (-1)));
-        printf("Range : %d  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
+        rslt = accel_foc_report(avg_accel_foc_data.y,
+                                (int16_t)(reference * (-1)),
+                                foc_sign,
+                                (int16_t)(min_val * (-1)),
+                                (int16_t)(max_val * (-1)));
+        printf("Range : %u  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
                range,
                avg_accel_foc_data.y,
                (reference * (-1)),
@@ -598,10 +605,12 @@ static int8_t verify_accel_foc_data(uint8_t range,
     }
     else if ((matched_axis == 'Z') && (foc_sign == 1))
     {
-        rslt =
-            accel_foc_report(range, avg_accel_foc_data.z, (reference * (-1)), foc_sign, (min_val * (-1)),
-                             (max_val * (-1)));
-        printf("Range : %d  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
+        rslt = accel_foc_report(avg_accel_foc_data.z,
+                                (int16_t)(reference * (-1)),
+                                foc_sign,
+                                (int16_t)(min_val * (-1)),
+                                (int16_t)(max_val * (-1)));
+        printf("Range : %u  Avg_FOC-X : %d   Reference : %d   Min_Value : %d  Max_Value : %d\n",
                range,
                avg_accel_foc_data.z,
                (reference * (-1)),
@@ -686,6 +695,8 @@ static int8_t perform_foc_range_test(uint8_t range, uint8_t input_axis, struct b
         case 3:
             reference = BMA4_16BIT_ACC_FOC_16G_REF;
             break;
+        default:
+            break;
     }
 
     if (g_value_foc.x == 1)
@@ -712,6 +723,7 @@ static int8_t perform_foc_range_test(uint8_t range, uint8_t input_axis, struct b
 
     printf("\n\n# Before FOC\n");
     rslt = verify_accel_foc_data(range, reference, matched_axis, g_value_foc.sign, dev);
+    bma4_error_codes_print_result("bma4_perform_accel_foc", rslt);
 
     printf("\n\n######### Perform Accel FOC #########\n\n");
 

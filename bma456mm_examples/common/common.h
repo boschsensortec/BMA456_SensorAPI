@@ -1,5 +1,5 @@
 /**\
- * Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
@@ -101,7 +101,7 @@ void bma4_delay_us(uint32_t period, void *intf_ptr);
  *  @retval 0 -> Success
  *  @retval < 0 -> Failure Info
  */
-int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, uint8_t variant);
+int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, enum bma4_variant variant);
 
 /*!
  *  @brief Prints the execution status of the APIs.

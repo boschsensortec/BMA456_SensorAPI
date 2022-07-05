@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (C) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -34,9 +34,11 @@ static uint8_t dev_addr;
  */
 BMA4_INTF_RET_TYPE bma4_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
-    uint8_t dev_addr = *(uint8_t*)intf_ptr;
+    uint8_t dev_address = *(uint8_t*)intf_ptr;
 
-    return coines_read_i2c(dev_addr, reg_addr, reg_data, (uint16_t)len);
+    (void)intf_ptr;
+
+    return coines_read_i2c(COINES_I2C_BUS_0, dev_address, reg_addr, reg_data, (uint16_t)len);
 }
 
 /*!
@@ -44,9 +46,11 @@ BMA4_INTF_RET_TYPE bma4_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
  */
 BMA4_INTF_RET_TYPE bma4_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
-    uint8_t dev_addr = *(uint8_t*)intf_ptr;
+    uint8_t dev_address = *(uint8_t*)intf_ptr;
 
-    return coines_write_i2c(dev_addr, reg_addr, (uint8_t *)reg_data, (uint16_t)len);
+    (void)intf_ptr;
+
+    return coines_write_i2c(COINES_I2C_BUS_0, dev_address, reg_addr, (uint8_t *)reg_data, (uint16_t)len);
 }
 
 /*!
@@ -54,9 +58,11 @@ BMA4_INTF_RET_TYPE bma4_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uin
  */
 BMA4_INTF_RET_TYPE bma4_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
-    uint8_t dev_addr = *(uint8_t*)intf_ptr;
+    uint8_t dev_address = *(uint8_t*)intf_ptr;
 
-    return coines_read_spi(dev_addr, reg_addr, reg_data, (uint16_t)len);
+    (void)intf_ptr;
+
+    return coines_read_spi(COINES_SPI_BUS_0, dev_address, reg_addr, reg_data, (uint16_t)len);
 }
 
 /*!
@@ -64,9 +70,11 @@ BMA4_INTF_RET_TYPE bma4_spi_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
  */
 BMA4_INTF_RET_TYPE bma4_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
-    uint8_t dev_addr = *(uint8_t*)intf_ptr;
+    uint8_t dev_address = *(uint8_t*)intf_ptr;
 
-    return coines_write_spi(dev_addr, reg_addr, (uint8_t *)reg_data, (uint16_t)len);
+    (void)intf_ptr;
+
+    return coines_write_spi(COINES_SPI_BUS_0, dev_address, reg_addr, (uint8_t *)reg_data, (uint16_t)len);
 }
 
 /*!
@@ -74,6 +82,7 @@ BMA4_INTF_RET_TYPE bma4_spi_write(uint8_t reg_addr, const uint8_t *reg_data, uin
  */
 void bma4_delay_us(uint32_t period, void *intf_ptr)
 {
+    (void) intf_ptr;
     coines_delay_usec(period);
 }
 
@@ -81,13 +90,13 @@ void bma4_delay_us(uint32_t period, void *intf_ptr)
  *  @brief Function to select the interface between SPI and I2C.
  *  Also to initialize coines platform
  */
-int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, uint8_t variant)
+int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, enum bma4_variant variant)
 {
     int8_t rslt = BMA4_OK;
 
     if (bma != NULL)
     {
-        int16_t result = coines_open_comm_intf(COINES_COMM_INTF_USB);
+        int16_t result = coines_open_comm_intf(COINES_COMM_INTF_USB, NULL);
         struct coines_board_info board_info;
         if (result < COINES_SUCCESS)
         {
@@ -97,22 +106,22 @@ int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, uint8_t variant)
             exit(result);
         }
 
-        rslt = coines_get_board_info(&board_info);
+        result = coines_get_board_info(&board_info);
 
     #if defined(PC)
         setbuf(stdout, NULL);
     #endif
 
-        if (rslt == COINES_SUCCESS)
+        if (result == COINES_SUCCESS)
         {
             if ((board_info.shuttle_id != BMA4XY_SHUTTLE_ID))
             {
                 printf("! Warning invalid sensor shuttle \n ," "This application will not support this sensor \n");
-                exit(COINES_E_FAILURE);
+                printf("\nShuttle Id : 0x%x\n", board_info.shuttle_id);
             }
         }
 
-        coines_set_shuttleboard_vdd_vddio_config(0, 0);
+        (void)coines_set_shuttleboard_vdd_vddio_config(0, 0);
         coines_delay_usec(10000);
 
         /* Bus configuration : I2C */
@@ -127,13 +136,16 @@ int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, uint8_t variant)
             bma->bus_write = bma4_i2c_write;
 
             /* SDO to Ground */
-            coines_set_pin_config(COINES_SHUTTLE_PIN_22, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_LOW);
+            (void)coines_set_pin_config(COINES_SHUTTLE_PIN_22, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_LOW);
 
             /* Make CSB pin HIGH */
-            coines_set_pin_config(COINES_SHUTTLE_PIN_21, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_HIGH);
+            (void)coines_set_pin_config(COINES_SHUTTLE_PIN_21, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_HIGH);
             coines_delay_msec(100);
 
-            coines_config_i2c_bus(COINES_I2C_BUS_0, COINES_I2C_STANDARD_MODE);
+            /* SDO pin is made low */
+            (void)coines_set_pin_config(COINES_SHUTTLE_PIN_SDO, COINES_PIN_DIRECTION_OUT, COINES_PIN_VALUE_LOW);
+
+            (void)coines_config_i2c_bus(COINES_I2C_BUS_0, COINES_I2C_STANDARD_MODE);
         }
         /* Bus configuration : SPI */
         else if (intf == BMA4_SPI_INTF)
@@ -145,7 +157,7 @@ int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, uint8_t variant)
             bma->intf = BMA4_SPI_INTF;
             bma->bus_read = bma4_spi_read;
             bma->bus_write = bma4_spi_write;
-            coines_config_spi_bus(COINES_SPI_BUS_0, COINES_SPI_SPEED_7_5_MHZ, COINES_SPI_MODE0);
+            (void)coines_config_spi_bus(COINES_SPI_BUS_0, COINES_SPI_SPEED_7_5_MHZ, COINES_SPI_MODE0);
         }
 
         /* Assign variant information */
@@ -160,9 +172,12 @@ int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, uint8_t variant)
         /* Configure max read/write length (in bytes) ( Supported length depends on target machine) */
         bma->read_write_len = BMA4_READ_WRITE_LEN;
 
+        /* Set Performance mode status */
+        bma->perf_mode_status = BMA4_DISABLE;
+
         coines_delay_msec(100);
 
-        coines_set_shuttleboard_vdd_vddio_config(3300, 3300);
+        (void)coines_set_shuttleboard_vdd_vddio_config(3300, 3300);
 
         coines_delay_msec(200);
     }
@@ -205,11 +220,11 @@ void bma4_error_codes_print_result(const char api_name[], int8_t rslt)
         }
         else if (rslt == BMA4_E_OUT_OF_RANGE)
         {
-        	printf("Error [%d] : Out of Range\r\n", rslt);
+            printf("Error [%d] : Out of Range\r\n", rslt);
         }
         else if (rslt == BMA4_E_AVG_MODE_INVALID_CONF)
         {
-        	printf("Error [%d] : Invalid bandwidth and ODR combination in Accel Averaging mode\r\n", rslt);
+            printf("Error [%d] : Invalid bandwidth and ODR combination in Accel Averaging mode\r\n", rslt);
         }
         else
         {
@@ -226,13 +241,14 @@ void bma4_error_codes_print_result(const char api_name[], int8_t rslt)
  */
 void bma4_coines_deinit(void)
 {
-    fflush(stdout);
+    (void)fflush(stdout);
+    coines_delay_msec(200);
 
-    coines_set_shuttleboard_vdd_vddio_config(0, 0);
+    (void)coines_set_shuttleboard_vdd_vddio_config(0, 0);
     coines_delay_msec(1000);
 
     /* Coines interface reset */
     coines_soft_reset();
     coines_delay_msec(1000);
-    coines_close_comm_intf(COINES_COMM_INTF_USB);
+    (void)coines_close_comm_intf(COINES_COMM_INTF_USB, NULL);
 }

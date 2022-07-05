@@ -1,5 +1,5 @@
 /**\
- * Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
@@ -70,8 +70,10 @@ int main(void)
         {
             printf("Move the board to detect orientation\n");
 
-            while (1)
+            for (;;)
             {
+                int_status = 0;
+
                 /* Read interrupt status */
                 rslt = bma456mm_read_int_status(&int_status, &bma);
                 bma4_error_codes_print_result("bma456mm_read_int_status", rslt);
@@ -95,6 +97,9 @@ int main(void)
                         case BMA456MM_FACE_DOWN:
                             printf("\nOrientation state is face down\n");
                             break;
+
+                        default:
+                            break;
                     }
 
                     switch (out_state.orientation_out)
@@ -111,12 +116,13 @@ int main(void)
                         case BMA456MM_PORTRAIT_UP_RIGHT:
                             printf("\nOrientation state is portrait upright\n\n");
                             break;
+
+                        default:
+                            break;
                     }
 
                     break;
                 }
-
-                int_status = 0;
             }
         }
     }

@@ -1,5 +1,5 @@
 /**\
- * Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
@@ -60,7 +60,7 @@ int main(void)
         {
             printf("Shake the sensor for greater than 3 sec to detect sig-motion interrupt\n");
 
-            while (1)
+            for (;;)
             {
                 /* Read the interrupt status */
                 rslt = bma456mm_read_int_status(&int_status, &bma);

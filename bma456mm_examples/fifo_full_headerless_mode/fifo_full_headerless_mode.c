@@ -1,5 +1,5 @@
 /**\
- * Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
@@ -148,10 +148,12 @@ int main(void)
                 rslt = bma4_extract_accel(fifo_accel_data, &accel_length, &fifoframe, &dev);
                 printf("Parsed accelerometer data frames: %d\n", accel_length);
 
+                printf("ACCEL, X, Y, Z\n");
+
                 /* Print the parsed accelerometer data from the FIFO buffer */
                 for (idx = 0; idx < accel_length; idx++)
                 {
-                    printf("ACCEL[%d] X : %d Y : %d Z : %d\n",
+                    printf("%d, %d, %d, %d\n",
                            idx,
                            fifo_accel_data[idx].x,
                            fifo_accel_data[idx].y,

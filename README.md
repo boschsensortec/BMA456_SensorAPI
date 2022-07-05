@@ -8,7 +8,7 @@ The BMA456 is an ultra-small, triaxial, low-g acceleration sensor with digital i
 
 ## Applications
 
-### BMA456 (base)
+### BMA456W
 - Any motion
 - No motion 
 - Step detector
@@ -44,3 +44,8 @@ The BMA456 is an ultra-small, triaxial, low-g acceleration sensor with digital i
 	- Single tap
 	- Double tap
 	- Triple tap
+
+### BMA456AN
+
+- Any motion
+- No motion

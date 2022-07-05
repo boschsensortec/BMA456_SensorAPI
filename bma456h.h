@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bma456h.h
-* @date       2021-08-06
-* @version    V2.20.4
+* @date       2022-07-01
+* @version    V2.24.1
 *
 */
 
@@ -75,6 +75,9 @@ extern "C" {
 /**\name Read/Write Lengths */
 #define BMA456H_RD_WR_MIN_LEN                     UINT8_C(2)
 #define BMA456H_NO_MOT_RD_WR_LEN                  (BMA456H_ANY_MOT_LEN + BMA456H_NO_MOT_OFFSET)
+
+/*! @name Maximum valid read write length is size of config file array */
+#define BMA456H_RD_WR_MAX_LEN                     ((uint16_t)sizeof(bma456h_config_file))
 
 /**************************************************************/
 /**\name    General settings: Re-map Axes */

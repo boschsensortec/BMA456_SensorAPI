@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bma456h.c
-* @date       2021-08-06
-* @version    V2.20.4
+* @date       2022-07-01
+* @version    V2.24.1
 *
 */
 
@@ -517,7 +517,7 @@ int8_t bma456h_write_config_file(struct bma4_dev *dev)
             /* Configuration stream read/write length boundary
              * check
              */
-            if ((dev->read_write_len >= BMA456H_RD_WR_MIN_LEN) && (dev->read_write_len <= BMA456H_FEATURE_SIZE))
+            if ((dev->read_write_len >= BMA456H_RD_WR_MIN_LEN) && (dev->read_write_len <= BMA456H_RD_WR_MAX_LEN))
             {
                 /* Even or odd check */
                 if (dev->read_write_len & 0x01)

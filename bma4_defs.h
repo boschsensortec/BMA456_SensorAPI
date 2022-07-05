@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bma4_defs.h
-* @date       2021-08-06
-* @version    V2.20.4
+* @date       2022-07-01
+* @version    V2.24.1
 *
 */
 
@@ -849,8 +849,8 @@ typedef void (*bma4_delay_us_fptr_t)(uint32_t period, void *intf_ptr);
 /*!  @name         Enum Declarations                                  */
 /******************************************************************************/
 /*!  @name Enum to define BMA4 variants */
-enum  bma4_variant {
-    BMA42X_VARIANT = 1,
+enum bma4_variant {
+    BMA42X_VARIANT = UINT8_C(1),
     BMA42X_B_VARIANT,
     BMA45X_VARIANT
 };

@@ -1,5 +1,5 @@
 /**\
- * Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
@@ -100,12 +100,13 @@ int main(void)
 
     /* Clear FIFO configuration register */
     rslt = bma4_set_fifo_config(BMA4_FIFO_ALL, BMA4_DISABLE, &dev);
+    bma4_error_codes_print_result("bma4_set_fifo_config disable status", rslt);
 
     /* Set FIFO configuration by enabling accel.
      * NOTE 1: The header mode is enabled by default.
      * NOTE 2: By default the FIFO operating mode is FIFO mode. */
     rslt = bma4_set_fifo_config(BMA4_FIFO_ACCEL | BMA4_FIFO_HEADER | BMA4_FIFO_TIME, BMA4_ENABLE, &dev);
-    bma4_error_codes_print_result("bma4_set_fifo_config status", rslt);
+    bma4_error_codes_print_result("bma4_set_fifo_config enable status", rslt);
 
     /* Update FIFO structure */
     fifoframe.data = fifo_data;
@@ -145,10 +146,12 @@ int main(void)
                 rslt = bma4_extract_accel(fifo_accel_data, &accel_length, &fifoframe, &dev);
                 printf("Parsed accelerometer data frames: %d\n", accel_length);
 
+                printf("ACCEL, X, Y, Z\n");
+
                 /* Print the parsed accelerometer data from the FIFO buffer */
                 for (idx = 0; idx < accel_length; idx++)
                 {
-                    printf("ACCEL[%d] X : %d Y : %d Z : %d\n",
+                    printf("%d, %d, %d, %d\n",
                            idx,
                            fifo_accel_data[idx].x,
                            fifo_accel_data[idx].y,

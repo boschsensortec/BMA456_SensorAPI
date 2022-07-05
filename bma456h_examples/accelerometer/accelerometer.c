@@ -1,5 +1,5 @@
 /**\
- * Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
@@ -47,7 +47,7 @@ int main(void)
     uint16_t int_status = 0;
 
     /* Variable that holds the accelerometer sample count */
-    uint8_t n_data = ACCEL_SAMPLE_COUNT;
+    uint8_t n_data = 1;
 
     struct bma4_accel sens_data = { 0 };
     float x = 0, y = 0, z = 0;
@@ -106,7 +106,9 @@ int main(void)
     rslt = bma4_set_accel_enable(BMA4_ENABLE, &bma);
     bma4_error_codes_print_result("bma4_set_accel_enable status", rslt);
 
-    while (1)
+    printf("Data, Acc_Raw_X, Acc_Raw_Y, Acc_Raw_Z, Acc_ms2_X, Acc_ms2_Y, Acc_ms2_Z\n");
+
+    for (;;)
     {
         /* Read interrupt status */
         rslt = bma456h_read_int_status(&int_status, &bma);
@@ -121,29 +123,25 @@ int main(void)
 
             if (rslt == BMA4_OK)
             {
-                printf("Acc_Raw_X : %d, Acc_Raw_Y : %d, Acc_Raw_Z : %d\t", sens_data.x, sens_data.y, sens_data.z);
 
                 /* Converting lsb to meter per second squared for 16 bit resolution at 2G range */
-                x = lsb_to_ms2(sens_data.x, 2, bma.resolution);
-                y = lsb_to_ms2(sens_data.y, 2, bma.resolution);
-                z = lsb_to_ms2(sens_data.z, 2, bma.resolution);
+                x = lsb_to_ms2(sens_data.x, (float)2, bma.resolution);
+                y = lsb_to_ms2(sens_data.y, (float)2, bma.resolution);
+                z = lsb_to_ms2(sens_data.z, (float)2, bma.resolution);
 
                 /* Print the data in m/s2 */
-                printf("Acc_ms2_X : %4.2f, Acc_ms2_Y : %4.2f, Acc_ms2_Z : %4.2f\n", x, y, z);
+                printf("%d, %d, %d, %d, %4.2f, %4.2f, %4.2f\n", n_data, sens_data.x, sens_data.y, sens_data.z, x, y, z);
             }
 
-            /* Decrement the count that determines the number of samples to be printed */
-            n_data--;
+            /* Increment the count that determines the number of samples to be printed */
+            n_data++;
 
-            /* When the count reaches 0, break and exit the loop */
-            if (n_data == 0)
+            /* When the count reaches more than ACCEL_SAMPLE_COUNT, break and exit the loop */
+            if (n_data > ACCEL_SAMPLE_COUNT)
             {
                 break;
             }
         }
-
-        /* Pause for 20ms, 50Hz output data rate */
-        bma.delay_us(BMA4_MS_TO_US(20), bma.intf_ptr);
     }
 
     bma4_coines_deinit();
@@ -156,7 +154,9 @@ int main(void)
  */
 static float lsb_to_ms2(int16_t val, float g_range, uint8_t bit_width)
 {
-    float half_scale = ((float)(1 << bit_width) / 2.0f);
+    double power = 2;
+
+    float half_scale = (float)((pow((double)power, (double)bit_width) / 2.0f));
 
     return (GRAVITY_EARTH * val * g_range) / half_scale;
 }

@@ -1,5 +1,5 @@
 /**\
- * Copyright (c) 2021 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  **/
@@ -69,7 +69,7 @@ int main(void)
         {
             printf("Move the board in steps to get interrupt\n");
 
-            while (1)
+            for (;;)
             {
                 /* Read interrupt status */
                 rslt = bma456h_read_int_status(&int_status, &bma);
