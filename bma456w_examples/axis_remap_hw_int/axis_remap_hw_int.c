@@ -109,7 +109,7 @@ int main(void)
      *  1 -> No averaging
      * For more info on No Averaging mode refer datasheet.
      */
-    accel_conf.perf_mode = BMA4_CONTINUOUS_MODE;
+    accel_conf.perf_mode = BMA4_CIC_AVG_MODE;
 
     /* Set the accel configurations */
     rslt = bma4_set_accel_config(&accel_conf, &bma4);

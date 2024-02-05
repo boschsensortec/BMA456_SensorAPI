@@ -49,3 +49,10 @@ The BMA456 is an ultra-small, triaxial, low-g acceleration sensor with digital i
 
 - Any motion
 - No motion
+
+### BMA456 tablet
+
+- Any/no motion 
+- Low-g
+- Single, double and triple tap
+- Orientation

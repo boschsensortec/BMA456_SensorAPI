@@ -1,5 +1,5 @@
 /**
-* Copyright (c) 2022 Bosch Sensortec GmbH. All rights reserved.
+* Copyright (c) 2023 Bosch Sensortec GmbH. All rights reserved.
 *
 * BSD-3-Clause
 *
@@ -31,8 +31,8 @@
 * POSSIBILITY OF SUCH DAMAGE.
 *
 * @file       bma4.c
-* @date       2022-07-01
-* @version    V2.24.1
+* @date       2023-07-05
+* @version    V2.29.0
 *
 */
 
@@ -4999,7 +4999,7 @@ static int8_t null_pointer_check(const struct bma4_dev *dev)
 {
     int8_t rslt = BMA4_OK;
 
-    if ((dev == NULL) || (dev->bus_read == NULL) || (dev->bus_write == NULL) || (dev->intf_ptr == NULL))
+    if ((dev == NULL) || (dev->bus_read == NULL) || (dev->bus_write == NULL) || (dev->delay_us == NULL))
     {
         rslt = BMA4_E_NULL_PTR;
     }

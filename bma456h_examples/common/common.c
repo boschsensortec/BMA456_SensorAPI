@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2022 Bosch Sensortec GmbH. All rights reserved.
+ * Copyright (C) 2023 Bosch Sensortec GmbH. All rights reserved.
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -13,9 +13,6 @@
 
 /******************************************************************************/
 /*!                       Macro definitions                                   */
-
-/*! BMA4xy shuttle board ID */
-#define BMA4XY_SHUTTLE_ID    UINT16_C(0x141)
 
 /*! Read write length varies based on user requirement */
 #define BMA4_READ_WRITE_LEN  UINT8_C(46)
@@ -111,15 +108,6 @@ int8_t bma4_interface_init(struct bma4_dev *bma, uint8_t intf, enum bma4_variant
     #if defined(PC)
         setbuf(stdout, NULL);
     #endif
-
-        if (result == COINES_SUCCESS)
-        {
-            if ((board_info.shuttle_id != BMA4XY_SHUTTLE_ID))
-            {
-                printf("! Warning invalid sensor shuttle \n ," "This application will not support this sensor \n");
-                printf("\nShuttle Id : 0x%x\n", board_info.shuttle_id);
-            }
-        }
 
         (void)coines_set_shuttleboard_vdd_vddio_config(0, 0);
         coines_delay_usec(10000);
