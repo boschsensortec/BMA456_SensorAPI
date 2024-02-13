@@ -14,9 +14,7 @@ The BMA456 is an ultra-small, triaxial, low-g acceleration sensor with digital i
 - Step detector
 - Step counter
 - Step activity
-- Tap
-	- Single tap
-	- Double tap
+- Wrist wear wakeup
 
 ### BMA456H
 
